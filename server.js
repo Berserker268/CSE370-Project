@@ -9,6 +9,7 @@ const passport = require('passport')
 const flash = require('express-flash')
 const session = require('express-session')
 const methodOverride = require('method-override')
+const path = require('path')
 
 const initializePassport = require('./passport-config')
 initializePassport(
@@ -31,6 +32,8 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(methodOverride('_method'))
+
+app.use('/image', express.static(path.join(__dirname, 'image')))
 
 /*eikhane j "index.ejs" file name ta dekhteso eita hocche amader html code file but eita hocche 
 ejs file which is better then html as eita dynamic html*/ 
