@@ -15,35 +15,32 @@
     body {
       height: 100vh;
       display: flex;
+      background: #f0f2f5;
+    }
+
+    /* Left side (form) */
+    .left-side {
+      width: 33.33%;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: #333;
+      padding: 40px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     }
 
-    .login-container {
-      background: #fff;
-      padding: 40px 30px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-      color: #333;
+    .left-side h1 {
+      margin-bottom: 25px;
       font-size: 2rem;
+      color: #333;
     }
 
-    .error-message {
-      color: #e74c3c;
-      margin-bottom: 15px;
-      font-size: 0.95rem;
+    .form-container {
+      width: 100%;
     }
 
-    form {
+    .form-container form {
       display: flex;
       flex-direction: column;
       gap: 15px;
@@ -51,7 +48,8 @@
 
     label {
       font-weight: 600;
-      text-align: left;
+      margin-bottom: 5px;
+      display: block;
     }
 
     input {
@@ -83,7 +81,7 @@
       background: #6a11cb;
     }
 
-    .register-link {
+    .link {
       margin-top: 15px;
       display: block;
       font-size: 0.95rem;
@@ -92,32 +90,76 @@
       transition: color 0.3s;
     }
 
-    .register-link:hover {
+    .link:hover {
       color: #6a11cb;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      margin-bottom: 10px;
+    }
+
+    /* Right side (image/illustration) */
+    .right-side {
+      width: 66.66%;
+      background: url('https://images.unsplash.com/photo-1591696331119-11b2d27a735d?auto=format&fit=crop&w=1350&q=80') no-repeat center center;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .right-side h2 {
+      color: white;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+      max-width: 500px;
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+      .left-side, .right-side {
+        width: 100%;
+        height: 50vh;
+      }
+      .right-side h2 {
+        font-size: 2rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
+  <!-- Left side: Form -->
+  <div class="left-side">
     <h1>Login</h1>
 
     <% if (messages.error) { %>
       <div class="error-message"><%= messages.error %></div>
     <% } %>
 
-    <form action="/login" method="POST">
-      <div>
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="you@example.com" required>
-      </div>
-      <div>
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter your password" required>
-      </div>
-      <button type="submit">Login</button>
-    </form>
+    <div class="form-container">
+      <form action="/login" method="POST">
+        <div>
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required>
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+        <button type="submit">Login</button>
+      </form>
 
-    <a class="register-link" href="/register">Don't have an account? Register</a>
+      <a class="link" href="/register">Don't have an account? Register</a>
+    </div>
+  </div>
+
+  <!-- Right side: Illustration -->
+  <div class="right-side">
+    <h2>Share your notes and collaborate with others easily!</h2>
   </div>
 </body>
 </html>
