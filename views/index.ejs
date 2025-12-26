@@ -1,4 +1,117 @@
-<h1>Hi <%= name %></h1>
-<form action="/logout?_method=DELETE" method="POST">
-  <button type="submit">Log Out</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnlyNotes | Notes Made Simple</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">N</div>
+            <span class="logo-text">OnlyNotes</span>
+        </div>
+        
+        <nav class="nav-links">
+            <button onclick="switchTab('foryou')" id="btn-foryou" class="tab-btn active">For You</button>
+            <button onclick="switchTab('trending')" id="btn-trending" class="tab-btn">Trending</button>
+            <button onclick="switchTab('following')" id="btn-following" class="tab-btn">Following</button>
+        </nav>
+
+        <div class="user-profile">
+            <img src="https://ui-avatars.com/api/?name=<%= name %>&background=a855f7&color=fff" style="width: 40px; height: 40px; border-radius: 50%;">
+        </div>
+    </header>
+
+    <div class="app-container">
+        <aside class="sidebar-left">
+            <div class="sidebar-group">
+                <p class="group-title">UTILITIES</p>
+                <a href="/upload" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-plus text-purple-500"></i> Upload Note</button>
+                </a>
+                <a href="/chat" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-message text-purple-500"></i> Chat</button>
+                </a>
+                <a href="/dashboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-solidLarge fa-house text-purple-500"></i> Dashboard</button>
+                </a>
+                <a href="/leaderboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-trophy text-purple-500"></i> Leaderboard</button>
+                </a>
+            </div>
+
+            <div id="filter-section" class="sidebar-group">
+                <p class="group-title">FITLER & SORT</p>
+                <div class="menu-item"># Finance</div>
+                <div class="menu-item"># DSA</div>
+            </div>
+        </aside>
+
+        <main class="feed-area">
+            <div class="note-card">
+                <div class="tag-row">
+                    <span class="mini-tag">FINANCE</span>
+                    <span class="mini-tag" style="background: #333;">EFAA1 PIECE</span>
+                </div>
+                
+                <h3 class="card-title">Capital Budgeting</h3>
+                
+                <div class="card-author">
+                    <img src="https://ui-avatars.com/api/?name=<%= name %>&background=333" style="width:22px; height:22px; border-radius:50%;">
+                    <span>by <%= name %> • 22 Saves</span>
+                    <span style="margin-left: auto;"><i class="fa-solid fa-star" style="color: gold;"></i> 0</span>
+                </div>
+
+                <div class="card-body">
+                    "IRR vs NPV - choose the right investment appraisal method."
+                    <button class="report-btn">Report <i class="fa-solid fa-flag"></i></button>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn-circle btn-reject"><i class="fa-solid fa-xmark"></i></button>
+                    <button class="btn-circle btn-center"><i class="fa-solid fa-book-open"></i></button>
+                    <button class="btn-circle btn-heart"><i class="fa-solid fa-heart"></i></button>
+                </div>
+            </div>
+        </main>
+
+        <aside id="sidebar-right" class="sidebar-right hidden">
+            <div class="leaderboard-card">
+                <h3 class="leaderboard-title">Top Contributors ✨</h3>
+                
+                <div class="leaderboard-item current-user">
+                    <img src="https://ui-avatars.com/api/?name=<%= name %>&background=a855f7&color=fff" class="rank-avatar">
+                    <span class="rank-name"><%= name %></span>
+                </div>
+
+                <div class="leaderboard-item">
+                    <span>1.</span>
+                    <span class="rank-name">Madii (150 pts)</span>
+                    <i class="fa-solid fa-medal medal medal-gold"></i>
+                </div>
+
+                <div class="leaderboard-item">
+                    <span>2.</span>
+                    <span class="rank-name">Paromita (150 pts)</span>
+                    <i class="fa-solid fa-medal medal medal-silver"></i>
+                </div>
+
+                <div class="leaderboard-item">
+                    <span>3.</span>
+                    <span class="rank-name">Elam (90 pts)</span>
+                    <i class="fa-solid fa-medal medal medal-bronze"></i>
+                </div>
+
+                <button class="view-full-btn">View Full Leaderboard</button>
+            </div>
+        </aside>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

@@ -33,10 +33,8 @@ app.use(passport.initialize())
 app.use(passport.session())
 app.use(methodOverride('_method'))
 
+app.use(express.static(path.join(__dirname, 'public')))
 app.use('/image', express.static(path.join(__dirname, 'image')))
-
-/*eikhane j "index.ejs" file name ta dekhteso eita hocche amader html code file but eita hocche 
-ejs file which is better then html as eita dynamic html*/ 
 
 app.get('/', checkAuthenticated, (req, res) => {
     res.render('index.ejs', {name: req.user.name})
@@ -72,6 +70,22 @@ app.post('/register',checkNotAuthenticated, async (req, res) =>{
     }
     req.body
 })
+
+app.get('/upload', checkAuthenticated, (req, res) => {
+    res.render('upload.ejs', { name: req.user.name });
+});
+
+app.get('/chat', checkAuthenticated, (req,res)=>{
+    res.render('chat.ejs', {name: req.user.name})
+})
+
+app.get('/dashboard', checkAuthenticated, (req, res) => {
+    res.render('dashboard.ejs', { name: req.user.name });
+});
+
+app.get('/leaderboard', checkAuthenticated, (req, res) => {
+    res.render('leaderboard.ejs', { name: req.user.name });
+});
 
 app.delete('/logout', (req, res, next) => {
     req.logOut(function(err) {
