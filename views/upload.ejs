@@ -3,9 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload</title>
+    <title>OnlyNotes | Upload Your Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <h1>Upload</h1>
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">N</div>
+            <span class="logo-text">OnlyNotes</span>
+        </div>
+        <div class="user-profile">
+            <img src="https://ui-avatars.com/api/?name=<%= name %>&background=a855f7&color=fff" style="width: 40px; height: 40px; border-radius: 50%;">
+        </div>
+    </header>
+    <div class="app-container">
+        <aside class="sidebar-left">
+            <div class="sidebar-group">
+                <p class="group-title">UTILITIES</p>
+                <a href="/" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-home text-purple-500"></i> Home Page</button>
+                </a>
+                <a href="/chat" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-message text-purple-500"></i> Chat</button>
+                </a>
+                <a href="/dashboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-solidLarge fa-dashboard text-purple-500"></i> Dashboard</button>
+                </a>
+                <a href="/leaderboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-trophy text-purple-500"></i> Leaderboard</button>
+                </a>
+            </div>
+        </aside>
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="note-form">
+            <div class="form-group">
+                <label for="title">Note Title:</label>
+                <input type="text" id="title" name="noteTitle" placeholder="e.g., Data Structures and Algorithms...">
+            </div>
+            <div class="form-group">
+                <label for="tags">Tags:</label>
+                <input type="text" id="tags" name="tags" placeholder="e.g., DSA, AI, ML...">
+            </div>
+            <div class="form-group">
+                <label for="subtitle">Note Headers:</label>
+                <input type="text" id="subtitle" name="NoteSubtitle" placeholder="Brief Description of your note...">
+            </div>
+            <div class="form-group">
+                <label for="content">Write Notes:</label>
+                <textarea class="text" id="content" name="noteContent" rows="12" placeholder="Start typing your notes here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Attach Txt File:</label>
+                <input type="file" name="noteFile" accept=".txt">
+            </div>
+            <button type="submit" class="submit-btn">Save Note</button>
+        </form>
+    </div>        
 </body>
 </html>

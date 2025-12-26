@@ -64,7 +64,7 @@
                 <div class="card-author">
                     <img src="https://ui-avatars.com/api/?name=<%= name %>&background=333" style="width:22px; height:22px; border-radius:50%;">
                     <span>by <%= name %> • 22 Saves</span>
-                    <span style="margin-left: auto;"><i class="fa-solid fa-star" style="color: gold;"></i> 0</span>
+                    <span style="margin-left: auto;"><i class="fa-solid fa-thumbs-up" style="color: inherit;"></i> 0</span>
                 </div>
 
                 <div class="card-body">
@@ -73,9 +73,9 @@
                 </div>
 
                 <div class="card-actions">
-                    <button class="btn-circle btn-reject"><i class="fa-solid fa-xmark"></i></button>
+                    <button class="btn-circle btn-reject"><i class="fa-solid fa-xmark" style="color: #00ff88;"></i></button>
                     <button class="btn-circle btn-center"><i class="fa-solid fa-book-open"></i></button>
-                    <button class="btn-circle btn-heart"><i class="fa-solid fa-heart"></i></button>
+                    <button class="btn-circle btn-heart"><i class="fa-solid fa-heart" style="color: red;"></i></button>
                 </div>
             </div>
         </main>
@@ -107,7 +107,9 @@
                     <i class="fa-solid fa-medal medal medal-bronze"></i>
                 </div>
 
-                <button class="view-full-btn">View Full Leaderboard</button>
+                <a href="/leaderboard" style="text-decoration: none; color: inherit;">
+                  <button class="view-full-btn">View Leaderboard</button>
+                </a>
             </div>
         </aside>
     </div>

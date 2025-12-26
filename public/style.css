@@ -10,7 +10,7 @@ body {
 
 /* Navbar */
 .navbar {
-    height: 70px;
+    height: 65px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -138,7 +138,89 @@ button.menu-item:active {
     color: white !important;
     transform: scale(0.95);
     transition: 0.1s;
-}       
+}
+
+.upload-container {
+    margin-top: 100px; 
+    margin-left: 100px;
+    margin-right: auto;
+    max-width: 1200px;
+    padding: 40px;
+    font-family: sans-serif;
+}
+
+/* --- General Row Layout --- */
+.form-group {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 50px;
+    margin-bottom: 25px; /* Space between rows */
+}
+
+/* Label Styling (Fixed width to keep inputs aligned) */
+.form-group label {
+    width: 125px; 
+    font-weight: normal;
+    color: #9ca3af;
+    padding-top: 5px;
+}
+
+.form-group:first-child {
+    margin-top: 50px;
+}
+
+.form-group input[type="text"],
+.form-group select {
+    width: 500px;
+    padding: 10px;
+    border: 1px solid #a855f7;
+    background-color: #1f2937;
+    color: white;
+    font-family: monospace;
+    font-size: 14px;
+    border-radius: 6px;
+} 
+textarea.text {
+    width: 1000px;
+    height: 425px;
+    min-height: 400px;
+    padding: 15px;
+    border: 1px solid #a855f7;
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1.6;
+    background-color: #1f2937;
+    color: white;
+    resize: vertical;
+}
+.form-group input[type="text"]:focus,
+textarea.text:focus {
+    outline: none;
+    border-color: #9333ea;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+    transition: all 0.2s ease;
+}
+
+.submit-btn {
+    margin-left: 150px; /* Aligns with the boxes, not the labels */
+    padding: 12px 35px;
+    background-color: #a855f7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+}
+
+.submit-btn:hover {
+    background-color: #9333ea;
+}
+
+.submit-btn:active {
+    transform: scale(0.95);
+}
+
 /* Helper Classes */
 .hidden { display: none !important; }
 .text-purple-500 { color: #a855f7; }
