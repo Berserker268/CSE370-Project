@@ -11,6 +11,14 @@ const session = require('express-session')
 const methodOverride = require('method-override')
 const path = require('path')
 const multer = require('multer')
+const mysql = require('mysql2');
+
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',      
+    password: '',      
+    database: 'onlynotes'
+});
 
 const initializePassport = require('./passport-config')
 initializePassport(
@@ -32,7 +40,7 @@ const upload = multer({ storage: storage });
 const users = [] //eita just locally store korbe user info for now but database banaile connect kore dite hobe
 
 
-app.set('view-engine', 'ejs')
+app.set('view engine', 'ejs')
 app.use(express.urlencoded({extended: false }))
 app.use(flash())
 app.use(session({
@@ -49,7 +57,17 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/image', express.static(path.join(__dirname, 'image')))
 
 app.get('/', checkAuthenticated, (req, res) => {
-    res.render('index.ejs', {name: req.user.name})
+    const sql = "SELECT username, score FROM leaderboard ORDER BY score DESC LIMIT 3";
+    db.query(sql, (err, result) => {
+        if (err) {
+            console.log("Leaderboard table not ready yet, using empty list.");
+            return res.render('index.ejs', { 
+                leaderboard: [], // Sends an empty list
+                name: req.user.name 
+            });
+        }
+        res.render('index.ejs', { leaderboard: result, name: req.user.name });
+    })
 })
 
 app.get('/login', checkNotAuthenticated,(req, res) =>{
@@ -101,19 +119,19 @@ app.post('/upload', upload.single('note_file'), (req, res)=>{
     if(!content && !filePath){
         return res.send('<script>alert("Write a note or upload a file first."); window.history.back();</script>')
     }
-    const sql = "INSERT INTO notes (title, content,subtitle, file_path) VALUES (?, ?, ?, ?)";
+    const sql = "INSERT INTO note (title, content,subtitle, file_path) VALUES (?, ?, ?, ?)";
     const data = [title, content, subtitle, filePath];
     db.query(sql, data, (err,result) => {
         if (err) return res.status(500).send(err);
         const noteId = result.insertId;
         let totaltags = 0;
         for(let name of tags){
-            db.query("INSERT IGNORE INTO tags (tag_name) VALUES (?)", [name], (err) => {
+            db.query("INSERT IGNORE INTO tag (tag_name) VALUES (?)", [name], (err) => {
                 if (err) return res.status(500).send(err);
-                db.query("SELECT id FROM tags WHERE tag_name = ?", [name], (err, tagResult) => {
+                db.query("SELECT id FROM tag WHERE tag_name = ?", [name], (err, tagResult) => {
                     if (err) return res.status(500).send(err);
                     const tagId = tagResult[0].id;
-                    db.query("INSERT INTO note_tags (note_id, tag_id) VALUES (?, ?)", [noteId, tagId], (err) => {
+                    db.query("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)", [noteId, tagId], (err) => {
                         if (err) return res.status(500).send(err);
                         totaltags++;
                         if(totaltags===tags.length){
