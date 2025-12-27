@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 26, 2025 at 07:54 PM
+-- Generation Time: Dec 27, 2025 at 06:47 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,34 +24,34 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `admins`
+-- Table structure for table `admin`
 --
 
-CREATE TABLE `admins` (
+CREATE TABLE `admin` (
   `admin_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `comments`
+-- Table structure for table `comment`
 --
 
-CREATE TABLE `comments` (
+CREATE TABLE `comment` (
   `comment_id` int(11) NOT NULL,
-  `note_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `comment_text` text NOT NULL,
-  `comment_date` timestamp NOT NULL DEFAULT current_timestamp()
+  `comment_text` text DEFAULT NULL,
+  `comment_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `user_id` int(11) DEFAULT NULL,
+  `note_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `follows`
+-- Table structure for table `follow`
 --
 
-CREATE TABLE `follows` (
+CREATE TABLE `follow` (
   `follower_id` int(11) NOT NULL,
   `following_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -63,94 +63,92 @@ CREATE TABLE `follows` (
 --
 
 CREATE TABLE `leaderboard` (
-  `leaderboard_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `leaderboard_ranks`
---
-
-CREATE TABLE `leaderboard_ranks` (
   `user_id` int(11) NOT NULL,
-  `leaderboard_id` int(11) NOT NULL,
-  `rank` int(11) NOT NULL
+  `rank` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `notes`
+-- Table structure for table `note`
 --
 
-CREATE TABLE `notes` (
+CREATE TABLE `note` (
   `note_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `title` varchar(200) DEFAULT NULL,
-  `preview_text` text DEFAULT NULL,
-  `full_text` longtext DEFAULT NULL,
-  `upvotes` int(11) DEFAULT 0,
+  `title` varchar(255) DEFAULT NULL,
+  `subtitle` varchar(255) DEFAULT NULL,
+  `content` text DEFAULT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `private_notes`
+-- Table structure for table `note_tag`
 --
 
-CREATE TABLE `private_notes` (
+CREATE TABLE `note_tag` (
   `note_id` int(11) NOT NULL,
+  `tag_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `private`
+--
+
+CREATE TABLE `private` (
+  `private_id` int(11) NOT NULL,
   `price` decimal(10,2) DEFAULT NULL,
-  `visibility` enum('Private') DEFAULT 'Private'
+  `visibility` varchar(20) DEFAULT 'Private'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `public_notes`
+-- Table structure for table `public`
 --
 
-CREATE TABLE `public_notes` (
-  `note_id` int(11) NOT NULL,
+CREATE TABLE `public` (
+  `public_id` int(11) NOT NULL,
   `total_subscribers` int(11) DEFAULT 0,
-  `visibility` enum('Public') DEFAULT 'Public'
+  `visibility` varchar(20) DEFAULT 'Public'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `subscriptions`
+-- Table structure for table `subscribe`
 --
 
-CREATE TABLE `subscriptions` (
+CREATE TABLE `subscribe` (
   `user_id` int(11) NOT NULL,
-  `note_id` int(11) NOT NULL,
-  `subscribed_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `public_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `texts`
+-- Table structure for table `tag`
 --
 
-CREATE TABLE `texts` (
-  `text_id` int(11) NOT NULL,
-  `text_content` longtext DEFAULT NULL
+CREATE TABLE `tag` (
+  `tag_id` int(11) NOT NULL,
+  `tag_name` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Table structure for table `user`
 --
 
-CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `email` varchar(150) NOT NULL,
+CREATE TABLE `user` (
+  `user_id` int(11) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `email` varchar(150) DEFAULT NULL,
   `total_upvotes` int(11) DEFAULT 0,
   `total_followers` int(11) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -159,13 +157,12 @@ CREATE TABLE `users` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `views`
+-- Table structure for table `view`
 --
 
-CREATE TABLE `views` (
+CREATE TABLE `view` (
   `user_id` int(11) NOT NULL,
-  `note_id` int(11) NOT NULL,
-  `viewed_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `note_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -173,23 +170,23 @@ CREATE TABLE `views` (
 --
 
 --
--- Indexes for table `admins`
+-- Indexes for table `admin`
 --
-ALTER TABLE `admins`
+ALTER TABLE `admin`
   ADD PRIMARY KEY (`admin_id`);
 
 --
--- Indexes for table `comments`
+-- Indexes for table `comment`
 --
-ALTER TABLE `comments`
+ALTER TABLE `comment`
   ADD PRIMARY KEY (`comment_id`),
-  ADD KEY `note_id` (`note_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `note_id` (`note_id`);
 
 --
--- Indexes for table `follows`
+-- Indexes for table `follow`
 --
-ALTER TABLE `follows`
+ALTER TABLE `follow`
   ADD PRIMARY KEY (`follower_id`,`following_id`),
   ADD KEY `following_id` (`following_id`);
 
@@ -197,58 +194,58 @@ ALTER TABLE `follows`
 -- Indexes for table `leaderboard`
 --
 ALTER TABLE `leaderboard`
-  ADD PRIMARY KEY (`leaderboard_id`);
+  ADD PRIMARY KEY (`user_id`);
 
 --
--- Indexes for table `leaderboard_ranks`
+-- Indexes for table `note`
 --
-ALTER TABLE `leaderboard_ranks`
-  ADD PRIMARY KEY (`user_id`,`leaderboard_id`),
-  ADD KEY `leaderboard_id` (`leaderboard_id`);
-
---
--- Indexes for table `notes`
---
-ALTER TABLE `notes`
-  ADD PRIMARY KEY (`note_id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- Indexes for table `private_notes`
---
-ALTER TABLE `private_notes`
+ALTER TABLE `note`
   ADD PRIMARY KEY (`note_id`);
 
 --
--- Indexes for table `public_notes`
+-- Indexes for table `note_tag`
 --
-ALTER TABLE `public_notes`
-  ADD PRIMARY KEY (`note_id`);
+ALTER TABLE `note_tag`
+  ADD PRIMARY KEY (`note_id`,`tag_id`),
+  ADD KEY `tag_id` (`tag_id`);
 
 --
--- Indexes for table `subscriptions`
+-- Indexes for table `private`
 --
-ALTER TABLE `subscriptions`
-  ADD PRIMARY KEY (`user_id`,`note_id`),
-  ADD KEY `note_id` (`note_id`);
+ALTER TABLE `private`
+  ADD PRIMARY KEY (`private_id`);
 
 --
--- Indexes for table `texts`
+-- Indexes for table `public`
 --
-ALTER TABLE `texts`
-  ADD PRIMARY KEY (`text_id`);
+ALTER TABLE `public`
+  ADD PRIMARY KEY (`public_id`);
 
 --
--- Indexes for table `users`
+-- Indexes for table `subscribe`
 --
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
+ALTER TABLE `subscribe`
+  ADD PRIMARY KEY (`user_id`,`public_id`),
+  ADD KEY `public_id` (`public_id`);
+
+--
+-- Indexes for table `tag`
+--
+ALTER TABLE `tag`
+  ADD PRIMARY KEY (`tag_id`),
+  ADD UNIQUE KEY `tag_name` (`tag_name`);
+
+--
+-- Indexes for table `user`
+--
+ALTER TABLE `user`
+  ADD PRIMARY KEY (`user_id`),
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indexes for table `views`
+-- Indexes for table `view`
 --
-ALTER TABLE `views`
+ALTER TABLE `view`
   ADD PRIMARY KEY (`user_id`,`note_id`),
   ADD KEY `note_id` (`note_id`);
 
@@ -257,97 +254,91 @@ ALTER TABLE `views`
 --
 
 --
--- AUTO_INCREMENT for table `comments`
+-- AUTO_INCREMENT for table `admin`
 --
-ALTER TABLE `comments`
+ALTER TABLE `admin`
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `comment`
+--
+ALTER TABLE `comment`
   MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `leaderboard`
+-- AUTO_INCREMENT for table `note`
 --
-ALTER TABLE `leaderboard`
-  MODIFY `leaderboard_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `notes`
---
-ALTER TABLE `notes`
+ALTER TABLE `note`
   MODIFY `note_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `texts`
+-- AUTO_INCREMENT for table `private`
 --
-ALTER TABLE `texts`
-  MODIFY `text_id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `private`
+  MODIFY `private_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `users`
+-- AUTO_INCREMENT for table `public`
 --
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `public`
+  MODIFY `public_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `tag`
+--
+ALTER TABLE `tag`
+  MODIFY `tag_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `user`
+--
+ALTER TABLE `user`
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `admins`
+-- Constraints for table `comment`
 --
-ALTER TABLE `admins`
-  ADD CONSTRAINT `admins_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`);
+ALTER TABLE `comment`
+  ADD CONSTRAINT `comment_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`),
+  ADD CONSTRAINT `comment_ibfk_2` FOREIGN KEY (`note_id`) REFERENCES `note` (`note_id`);
 
 --
--- Constraints for table `comments`
+-- Constraints for table `follow`
 --
-ALTER TABLE `comments`
-  ADD CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`note_id`) REFERENCES `notes` (`note_id`),
-  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `follow`
+  ADD CONSTRAINT `follow_ibfk_1` FOREIGN KEY (`follower_id`) REFERENCES `user` (`user_id`),
+  ADD CONSTRAINT `follow_ibfk_2` FOREIGN KEY (`following_id`) REFERENCES `user` (`user_id`);
 
 --
--- Constraints for table `follows`
+-- Constraints for table `leaderboard`
 --
-ALTER TABLE `follows`
-  ADD CONSTRAINT `follows_ibfk_1` FOREIGN KEY (`follower_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `follows_ibfk_2` FOREIGN KEY (`following_id`) REFERENCES `users` (`id`);
+ALTER TABLE `leaderboard`
+  ADD CONSTRAINT `leaderboard_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`);
 
 --
--- Constraints for table `leaderboard_ranks`
+-- Constraints for table `note_tag`
 --
-ALTER TABLE `leaderboard_ranks`
-  ADD CONSTRAINT `leaderboard_ranks_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `leaderboard_ranks_ibfk_2` FOREIGN KEY (`leaderboard_id`) REFERENCES `leaderboard` (`leaderboard_id`);
+ALTER TABLE `note_tag`
+  ADD CONSTRAINT `note_tag_ibfk_1` FOREIGN KEY (`note_id`) REFERENCES `note` (`note_id`),
+  ADD CONSTRAINT `note_tag_ibfk_2` FOREIGN KEY (`tag_id`) REFERENCES `tag` (`tag_id`);
 
 --
--- Constraints for table `notes`
+-- Constraints for table `subscribe`
 --
-ALTER TABLE `notes`
-  ADD CONSTRAINT `notes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+ALTER TABLE `subscribe`
+  ADD CONSTRAINT `subscribe_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`),
+  ADD CONSTRAINT `subscribe_ibfk_2` FOREIGN KEY (`public_id`) REFERENCES `public` (`public_id`);
 
 --
--- Constraints for table `private_notes`
+-- Constraints for table `view`
 --
-ALTER TABLE `private_notes`
-  ADD CONSTRAINT `private_notes_ibfk_1` FOREIGN KEY (`note_id`) REFERENCES `notes` (`note_id`);
-
---
--- Constraints for table `public_notes`
---
-ALTER TABLE `public_notes`
-  ADD CONSTRAINT `public_notes_ibfk_1` FOREIGN KEY (`note_id`) REFERENCES `notes` (`note_id`);
-
---
--- Constraints for table `subscriptions`
---
-ALTER TABLE `subscriptions`
-  ADD CONSTRAINT `subscriptions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `subscriptions_ibfk_2` FOREIGN KEY (`note_id`) REFERENCES `notes` (`note_id`);
-
---
--- Constraints for table `views`
---
-ALTER TABLE `views`
-  ADD CONSTRAINT `views_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `views_ibfk_2` FOREIGN KEY (`note_id`) REFERENCES `notes` (`note_id`);
+ALTER TABLE `view`
+  ADD CONSTRAINT `view_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`),
+  ADD CONSTRAINT `view_ibfk_2` FOREIGN KEY (`note_id`) REFERENCES `note` (`note_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
