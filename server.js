@@ -10,6 +10,7 @@ const flash = require('express-flash')
 const session = require('express-session')
 const methodOverride = require('method-override')
 const path = require('path')
+const multer = require('multer')
 
 const initializePassport = require('./passport-config')
 initializePassport(
@@ -17,6 +18,16 @@ initializePassport(
     email => users.find(user => user.email === email),
     id => users.find(user => user.id === id)
 )
+const storage = multer.diskStorage({ //this line tells multer to store the file in hard drive
+    destination: (req, file, cb) => { 
+        cb(null, 'uploads/'); //takes the request and the file and then the call back function redirects to uploads folder
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname); // same thing just oi uploads folder e its saved w this name
+    }
+})
+
+const upload = multer({ storage: storage });
 
 const users = [] //eita just locally store korbe user info for now but database banaile connect kore dite hobe
 
@@ -33,6 +44,7 @@ app.use(passport.initialize())
 app.use(passport.session())
 app.use(methodOverride('_method'))
 
+app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/image', express.static(path.join(__dirname, 'image')))
 
@@ -74,6 +86,49 @@ app.post('/register',checkNotAuthenticated, async (req, res) =>{
 app.get('/upload', checkAuthenticated, (req, res) => {
     res.render('upload.ejs', { name: req.user.name });
 });
+
+app.post('/upload', upload.single('note_file'), (req, res)=>{
+    const {title, content, subtitle} = req.body;
+    const tags = req.body.tags ? req.body.tags.split(',').filter(tag => tag.trim() !== "") : [];
+    let filePath = req.file ? req.file.path : null;
+
+    if(content && filePath){
+        return res.send('<script>alert("Please choose ONLY one: either write a note OR upload a file"); window.history.back();</script>');
+    }
+    if(tags.length === 0){
+        return res.send('<script>alert("You must select at least one relevant tag for your note."); window.history.back();</script>');
+    }
+    if(!content && !filePath){
+        return res.send('<script>alert("Write a note or upload a file first."); window.history.back();</script>')
+    }
+    const sql = "INSERT INTO notes (title, content,subtitle, file_path) VALUES (?, ?, ?, ?)";
+    const data = [title, content, subtitle, filePath];
+    db.query(sql, data, (err,result) => {
+        if (err) return res.status(500).send(err);
+        const noteId = result.insertId;
+        let totaltags = 0;
+        for(let name of tags){
+            db.query("INSERT IGNORE INTO tags (tag_name) VALUES (?)", [name], (err) => {
+                if (err) return res.status(500).send(err);
+                db.query("SELECT id FROM tags WHERE tag_name = ?", [name], (err, tagResult) => {
+                    if (err) return res.status(500).send(err);
+                    const tagId = tagResult[0].id;
+                    db.query("INSERT INTO note_tags (note_id, tag_id) VALUES (?, ?)", [noteId, tagId], (err) => {
+                        if (err) return res.status(500).send(err);
+                        totaltags++;
+                        if(totaltags===tags.length){
+                            res.redirect('/notes');
+                        }
+                    });
+                });
+            });
+        }
+    })
+})
+
+app.get('/notes', checkAuthenticated, (req,res) =>{
+    res.render('notes.ejs', {name: req.user.name})
+})
 
 app.get('/chat', checkAuthenticated, (req,res)=>{
     res.render('chat.ejs', {name: req.user.name})

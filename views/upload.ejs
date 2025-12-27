@@ -33,20 +33,27 @@
                 <a href="/leaderboard" style="text-decoration: none; color: inherit;">
                   <button class="menu-item upload-btn"><i class="fa-solid fa-trophy text-purple-500"></i> Leaderboard</button>
                 </a>
+                <a href="/notes" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-receipt text-purple-500"></i> Your Notes</button>
+                </a>
             </div>
         </aside>
         <form action="/upload" method="POST" enctype="multipart/form-data" class="note-form">
             <div class="form-group">
                 <label for="title">Note Title:</label>
-                <input type="text" id="title" name="noteTitle" placeholder="e.g., Data Structures and Algorithms...">
+                <input type="text" id="title" name="title" placeholder="e.g., Data Structures and Algorithms...">
             </div>
             <div class="form-group">
                 <label for="tags">Tags:</label>
-                <input type="text" id="tags" name="tags" placeholder="e.g., DSA, AI, ML...">
+                <div class="input-container">
+                    <input type="text" id="tag-input" placeholder="e.g., DSA, AI, ML...">
+                    <div id="tag-chips"></div>
+                </div>
+                <input type="hidden" name="tags" id="hidden-tags">
             </div>
             <div class="form-group">
                 <label for="subtitle">Note Headers:</label>
-                <input type="text" id="subtitle" name="NoteSubtitle" placeholder="Brief Description of your note...">
+                <input type="text" id="subtitle" name="subtitle" placeholder="Brief Description of your note...">
             </div>
             <div class="form-group">
                 <label for="content">Write Notes:</label>
@@ -58,6 +65,41 @@
             </div>
             <button type="submit" class="submit-btn">Save Note</button>
         </form>
-    </div>        
+    </div>
+    <script>
+        const tagInput = document.getElementById('tag-input');
+        const chipContainer = document.getElementById('tag-chips');
+        const hiddenInput = document.getElementById('hidden-tags');
+        let tags = [];
+
+        tagInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tag = tagInput.value.trim();
+                
+                if (tag && !tags.includes(tag)) {
+                    tags.push(tag);
+                    renderChips();
+                    tagInput.value = '';
+                }
+            }
+        });
+
+        function renderChips() {
+            chipContainer.innerHTML = ''; // Clear current chips
+            tags.forEach((tag, index) => {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.innerHTML = `${tag} <button type="button" onclick="removeTag(${index})">&times;</button>`;
+                chipContainer.appendChild(chip);
+            });
+            hiddenInput.value = tags.join(',');
+        }
+
+        function removeTag(index) {
+            tags.splice(index, 1);
+            renderChips();
+        }
+    </script>
 </body>
 </html>
