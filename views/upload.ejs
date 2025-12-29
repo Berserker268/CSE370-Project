@@ -28,7 +28,7 @@
                   <button class="menu-item upload-btn"><i class="fa-solid fa-message text-purple-500"></i> Chat</button>
                 </a>
                 <a href="/dashboard" style="text-decoration: none; color: inherit;">
-                  <button class="menu-item upload-btn"><i class="fa-solid fa-solidLarge fa-dashboard text-purple-500"></i> Dashboard</button>
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-receipt text-purple-500"></i> Dashboard</button>
                 </a>
                 <a href="/leaderboard" style="text-decoration: none; color: inherit;">
                   <button class="menu-item upload-btn"><i class="fa-solid fa-trophy text-purple-500"></i> Leaderboard</button>
@@ -36,6 +36,9 @@
                 <a href="/notes" style="text-decoration: none; color: inherit;">
                   <button class="menu-item upload-btn"><i class="fa-solid fa-receipt text-purple-500"></i> Your Notes</button>
                 </a>
+                <form action="/logout?_method=DELETE" method="POST" style="text-decoration: none;">
+                    <button type="submit" class="menu-item upload-btn"><i class="fa-solid fa-right-from-bracket text-purple-500"></i> Sign Out</button>
+                </form>
             </div>
         </aside>
         <form action="/upload" method="POST" enctype="multipart/form-data" class="note-form">

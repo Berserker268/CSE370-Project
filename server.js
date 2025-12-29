@@ -21,11 +21,8 @@ const db = mysql.createConnection({
 });
 
 const initializePassport = require('./passport-config')
-initializePassport(
-    passport, 
-    email => users.find(user => user.email === email),
-    id => users.find(user => user.id === id)
-)
+initializePassport(passport,db)
+
 const storage = multer.diskStorage({ //this line tells multer to store the file in hard drive
     destination: (req, file, cb) => { 
         cb(null, 'uploads/'); //takes the request and the file and then the call back function redirects to uploads folder
@@ -88,17 +85,18 @@ app.post('/register',checkNotAuthenticated, async (req, res) =>{
     try{
         const salt = await bcrypt.genSalt()
         const hashedPassword = await bcrypt.hash(req.body.password, salt)
-        users.push({
-            id: Date.now().toString(),//this is locally stored but database hoile oitai point korbe
-            name: req.body.name,
-            email: req.body.email,
-            password: hashedPassword
+        const { name, email} = req.body
+        const sql = "INSERT INTO user (name, email, password) values (?, ?, ?)";
+        db.query(sql, [name, email, hashedPassword], (err,result) =>{
+            if(err){
+                console.error(err);
+                return res.redirect('/register');
+            }
+            res.redirect('/login');
         })
-        res.redirect('/login')
     }catch{
-        res.redirect('/register')
+        res.redirect('/register');
     }
-    req.body
 })
 
 app.get('/upload', checkAuthenticated, (req, res) => {
@@ -158,6 +156,10 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
 
 app.get('/leaderboard', checkAuthenticated, (req, res) => {
     res.render('leaderboard.ejs', { name: req.user.name });
+});
+
+app.get('/profile', checkAuthenticated, (req, res) => {
+    res.render('profile.ejs', { name: req.user.name });
 });
 
 app.delete('/logout', (req, res, next) => {
