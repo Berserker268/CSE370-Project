@@ -21,6 +21,7 @@ const db = mysql.createConnection({
 });
 
 const initializePassport = require('./passport-config')
+const { name } = require('ejs')
 initializePassport(passport,db)
 
 const storage = multer.diskStorage({ //this line tells multer to store the file in hard drive
@@ -33,9 +34,6 @@ const storage = multer.diskStorage({ //this line tells multer to store the file 
 })
 
 const upload = multer({ storage: storage });
-
-const users = [] //eita just locally store korbe user info for now but database banaile connect kore dite hobe
-
 
 app.set('view engine', 'ejs')
 app.use(express.urlencoded({extended: false }))
@@ -54,16 +52,55 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/image', express.static(path.join(__dirname, 'image')))
 
 app.get('/', checkAuthenticated, (req, res) => {
-    const sql = "SELECT username, score FROM leaderboard ORDER BY score DESC LIMIT 3";
-    db.query(sql, (err, result) => {
+    const userId = req.user.user_id;
+    const leaderboardsql = `
+    SELECT 
+        u.name, 
+        u.rank_level, 
+        (SUM(n.upvotes)* 10) AS points 
+    FROM user u
+    LEFT JOIN note n ON u.user_id = n.uploader_id
+    GROUP BY u.user_id
+    ORDER BY points DESC 
+    LIMIT 3`;
+    const notesSql = `
+    SELECT 
+        n.*, 
+        u.name AS author_name,
+        GROUP_CONCAT(t.tag_name) AS tag_list
+    FROM note n
+    JOIN user u ON n.uploader_id = u.user_id
+    JOIN note_tag nt ON n.note_id = nt.note_id
+    JOIN tag t ON nt.tag_id = t.tag_id
+    WHERE n.uploader_id != ? 
+      AND n.note_id NOT IN (SELECT note_id FROM saved_notes WHERE user_id = ?)
+    GROUP BY n.note_id
+    ORDER BY n.created_at DESC 
+    LIMIT 50`;
+    db.query(leaderboardsql, (err, leaderboardresult) => {
         if (err) {
-            console.log("Leaderboard table not ready yet, using empty list.");
+            console.error("Error fetching Leaderboard", err);
             return res.render('index.ejs', { 
-                leaderboard: [], // Sends an empty list
+                leaderboard: [],
+                notes: [],
                 name: req.user.name 
             });
         }
-        res.render('index.ejs', { leaderboard: result, name: req.user.name });
+        db.query(notesSql, [userId, userId], (err, notesresult) => {
+            if (err) {
+                console.error("Error fetching Notes", err);
+                return res.render('index.ejs', { 
+                    leaderboard: leaderboardresult,
+                    notes: [], 
+                    name: req.user.name 
+                });
+            }
+                res.render('index.ejs', {
+                    leaderboard : leaderboardresult,
+                    notes: notesresult,
+                    name: req.user.name
+                })
+        });
     })
 })
 
@@ -86,7 +123,7 @@ app.post('/register',checkNotAuthenticated, async (req, res) =>{
         const salt = await bcrypt.genSalt()
         const hashedPassword = await bcrypt.hash(req.body.password, salt)
         const { name, email} = req.body
-        const sql = "INSERT INTO user (name, email, password) values (?, ?, ?)";
+        const sql = "INSERT INTO user (name, email, password, role, points, rank_level) values (?, ?, ?, 'user', 0, 'Beginner')";
         db.query(sql, [name, email, hashedPassword], (err,result) =>{
             if(err){
                 console.error(err);
@@ -117,28 +154,28 @@ app.post('/upload', upload.single('note_file'), (req, res)=>{
     if(!content && !filePath){
         return res.send('<script>alert("Write a note or upload a file first."); window.history.back();</script>')
     }
-    const sql = "INSERT INTO note (title, content,subtitle, file_path) VALUES (?, ?, ?, ?)";
-    const data = [title, content, subtitle, filePath];
+    const sql = "INSERT INTO note (title, content, subtitle, file_path, uploader_id) VALUES (?, ?, ?, ?, ?)";
+    const data = [title, content, subtitle, filePath, req.user.user_id];
     db.query(sql, data, (err,result) => {
-        if (err) return res.status(500).send(err);
+        if (err) {
+            console.error("Upload Error:", err);
+            return res.status(500).send("Database error during upload.");
+        };
         const noteId = result.insertId;
         let totaltags = 0;
-        for(let name of tags){
-            db.query("INSERT IGNORE INTO tag (tag_name) VALUES (?)", [name], (err) => {
-                if (err) return res.status(500).send(err);
-                db.query("SELECT id FROM tag WHERE tag_name = ?", [name], (err, tagResult) => {
-                    if (err) return res.status(500).send(err);
-                    const tagId = tagResult[0].id;
+        tags.forEach((name) => {
+            db.query("INSERT IGNORE INTO tag (tag_name) VALUES (?)", [name.trim()], (err) => {
+                db.query("SELECT tag_id FROM tag WHERE tag_name = ?", [name.trim()], (err, tagResult) => {
+                    const tagId = tagResult[0].tag_id;
                     db.query("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)", [noteId, tagId], (err) => {
-                        if (err) return res.status(500).send(err);
                         totaltags++;
-                        if(totaltags===tags.length){
-                            res.redirect('/notes');
+                        if (totaltags === tags.length) {
+                            return res.redirect('/dashboard'); 
                         }
                     });
                 });
             });
-        }
+        });
     })
 })
 
@@ -160,6 +197,37 @@ app.get('/leaderboard', checkAuthenticated, (req, res) => {
 
 app.get('/profile', checkAuthenticated, (req, res) => {
     res.render('profile.ejs', { name: req.user.name });
+});
+
+app.post('/like-note/:id', async (req, res) => {
+    const noteId = req.params.id;
+    const userId = req.user.user_id;
+
+    if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    try {
+        const query = "INSERT INTO saved_notes (user_id, note_id) VALUES (?, ?)";
+        const updateQuery = "UPDATE note SET upvotes = upvotes + 1 WHERE note_id = ?";
+        db.query(query, [userId, noteId], (err, result) => {
+            if (err) {
+                console.error("Error inserting into saved_notes:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+            db.query(updateQuery, [noteId], (err, updateResult) => {
+                if (err) {
+                    console.error("Error updating upvotes:", err);
+                    return res.status(500).json({ error: "Upvote failed" });
+                }
+                res.json({ success: true, message: "Note liked and upvoted!" });
+            });
+        });
+    } catch (err) {
+        // Handles case where user tries to like the same note twice (if unique constraint exists)
+        console.error("Database error:", err);
+        res.status(500).json({ error: "Could not save note" });
+    }
 });
 
 app.delete('/logout', (req, res, next) => {

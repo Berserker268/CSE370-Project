@@ -33,9 +33,6 @@
                 <a href="/leaderboard" style="text-decoration: none; color: inherit;">
                   <button class="menu-item upload-btn"><i class="fa-solid fa-trophy text-purple-500"></i> Leaderboard</button>
                 </a>
-                <a href="/notes" style="text-decoration: none; color: inherit;">
-                  <button class="menu-item upload-btn"><i class="fa-solid fa-receipt text-purple-500"></i> Your Notes</button>
-                </a>
                 <form action="/logout?_method=DELETE" method="POST" style="text-decoration: none;">
                     <button type="submit" class="menu-item upload-btn"><i class="fa-solid fa-right-from-bracket text-purple-500"></i> Sign Out</button>
                 </form>
@@ -55,16 +52,16 @@
                 <input type="hidden" name="tags" id="hidden-tags">
             </div>
             <div class="form-group">
-                <label for="subtitle">Note Headers:</label>
+                <label for="subtitle">Description:</label>
                 <input type="text" id="subtitle" name="subtitle" placeholder="Brief Description of your note...">
             </div>
             <div class="form-group">
                 <label for="content">Write Notes:</label>
-                <textarea class="text" id="content" name="noteContent" rows="12" placeholder="Start typing your notes here..."></textarea>
+                <textarea class="text" id="content" name="content" rows="12" placeholder="Start typing your notes here..."></textarea>
             </div>
             <div class="form-group">
                 <label>Attach Txt File:</label>
-                <input type="file" name="noteFile" accept=".txt">
+                <input type="file" name="note_file" accept=".txt">
             </div>
             <button type="submit" class="submit-btn">Save Note</button>
         </form>
