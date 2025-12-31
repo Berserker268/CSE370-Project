@@ -224,7 +224,6 @@ app.post('/like-note/:id', async (req, res) => {
             });
         });
     } catch (err) {
-        // Handles case where user tries to like the same note twice (if unique constraint exists)
         console.error("Database error:", err);
         res.status(500).json({ error: "Could not save note" });
     }

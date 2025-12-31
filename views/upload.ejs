@@ -38,33 +38,35 @@
                 </form>
             </div>
         </aside>
-        <form action="/upload" method="POST" enctype="multipart/form-data" class="note-form">
-            <div class="form-group">
-                <label for="title">Note Title:</label>
-                <input type="text" id="title" name="title" placeholder="e.g., Data Structures and Algorithms...">
-            </div>
-            <div class="form-group">
-                <label for="tags">Tags:</label>
-                <div class="input-container">
-                    <input type="text" id="tag-input" placeholder="e.g., DSA, AI, ML...">
-                    <div id="tag-chips"></div>
+        <main class="upload-page-wrapper">
+            <form action="/upload" method="POST" enctype="multipart/form-data" class="note-form">
+                <div class="form-group">
+                    <label for="title">Note Title:</label>
+                    <input type="text" id="title" name="title" placeholder="e.g., Data Structures and Algorithms...">
                 </div>
-                <input type="hidden" name="tags" id="hidden-tags">
-            </div>
-            <div class="form-group">
-                <label for="subtitle">Description:</label>
-                <input type="text" id="subtitle" name="subtitle" placeholder="Brief Description of your note...">
-            </div>
-            <div class="form-group">
-                <label for="content">Write Notes:</label>
-                <textarea class="text" id="content" name="content" rows="12" placeholder="Start typing your notes here..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Attach Txt File:</label>
-                <input type="file" name="note_file" accept=".txt">
-            </div>
-            <button type="submit" class="submit-btn">Save Note</button>
-        </form>
+                <div class="form-group">
+                    <label for="tags">Tags:</label>
+                    <div class="input-container">
+                        <input type="text" id="tag-input" placeholder="e.g., DSA, AI, ML...">
+                        <div id="tag-chips"></div>
+                    </div>
+                    <input type="hidden" name="tags" id="hidden-tags">
+                </div>
+                <div class="form-group">
+                    <label for="subtitle">Description:</label>
+                    <input type="text" id="subtitle" name="subtitle" placeholder="Brief Description of your note...">
+                </div>
+                <div class="form-group">
+                    <label for="content">Write Notes:</label>
+                    <textarea class="text" id="content" name="content" rows="12" placeholder="Start typing your notes here..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Attach Txt File:</label>
+                    <input type="file" name="note_file" accept=".txt">
+                </div>
+                <button type="submit" class="submit-btn">Save Note</button>
+            </form>
+        </main>
     </div>
     <script>
         const tagInput = document.getElementById('tag-input');

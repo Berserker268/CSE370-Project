@@ -155,7 +155,7 @@ button.menu-item:active {
     padding: 60px 20px;
     text-align: center;
     color: white;
-    border: 2px dashed #333; /* Makes it look like an empty slot */
+    border: 2px dashed #333;
     margin-top: 20px;
 }
 
@@ -197,6 +197,19 @@ button.menu-item:active {
     max-width: 1200px;
     padding: 40px;
     font-family: sans-serif;
+    background: transparent !important;
+    min-height: calc(100vh - 65px);
+}
+
+.upload-page-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 60px;
+    background: radial-gradient(circle at center, #130d24 0%, #0b0e14 100%);
+    min-height: calc(100vh - 65px);
+    overflow-y: auto;
 }
 
 .form-group {
