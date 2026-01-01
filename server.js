@@ -1,4 +1,4 @@
-if(process.env.NODE_ENV !== 'production'){
+if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config()
 }
 
@@ -10,18 +10,8 @@ const flash = require('express-flash')
 const session = require('express-session')
 const methodOverride = require('method-override')
 const path = require('path')
-const multer = require('multer')
 const mysql = require('mysql2');
 
-/**
- * MySQL Connection configured from environment variables with sensible defaults.
- *
- * Create a env variable with following param
- * - DB_HOST (default: 'localhost')
- * - DB_USER (default: 'root')
- * - DB_PASS (default: 'admin')
- * - DB_NAME (default: 'onlynotes-db')
- */
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -38,22 +28,11 @@ db.connect((err) => {
 });
 
 const initializePassport = require('./passport-config')
-const { name } = require('ejs')
-initializePassport(passport,db)
-
-const storage = multer.diskStorage({ //this line tells multer to store the file in hard drive
-    destination: (req, file, cb) => { 
-        cb(null, 'uploads/'); //takes the request and the file and then the call back function redirects to uploads folder
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname); // same thing just oi uploads folder e its saved w this name
-    }
-})
-
-const upload = multer({ storage: storage });
+initializePassport(passport, db)
 
 app.set('view engine', 'ejs')
-app.use(express.urlencoded({extended: false }))
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: false }))
 app.use(flash())
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -64,7 +43,6 @@ app.use(passport.initialize())
 app.use(passport.session())
 app.use(methodOverride('_method'))
 
-app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/image', express.static(path.join(__dirname, 'image')))
 
@@ -80,9 +58,10 @@ app.get('/', checkAuthenticated, (req, res) => {
     GROUP BY u.user_id
     ORDER BY points DESC 
     LIMIT 3`;
+
     const notesSql = `
     SELECT 
-        n.*, 
+        n.note_id, n.title, n.content, n.subtitle, n.upvotes, n.created_at, 
         u.name AS author_name,
         u.rank_level AS author_rank,
         GROUP_CONCAT(t.tag_name) AS tag_list
@@ -95,61 +74,62 @@ app.get('/', checkAuthenticated, (req, res) => {
     GROUP BY n.note_id, u.name, u.rank_level
     ORDER BY n.created_at DESC 
     LIMIT 50`;
+
     db.query(leaderboardsql, (err, leaderboardresult) => {
         if (err) {
             console.error("Error fetching Leaderboard", err);
-            return res.render('index.ejs', { 
+            return res.render('index.ejs', {
                 leaderboard: [],
                 notes: [],
-                name: req.user.name 
+                name: req.user.name
             });
         }
         db.query(notesSql, [userId, userId], (err, notesresult) => {
             if (err) {
                 console.error("Error fetching Notes", err);
-                return res.render('index.ejs', { 
+                return res.render('index.ejs', {
                     leaderboard: leaderboardresult,
-                    notes: [], 
-                    name: req.user.name 
+                    notes: [],
+                    name: req.user.name
                 });
             }
-                res.render('index.ejs', {
-                    leaderboard : leaderboardresult,
-                    notes: notesresult,
-                    name: req.user.name
-                })
+            res.render('index.ejs', {
+                leaderboard: leaderboardresult,
+                notes: notesresult,
+                name: req.user.name
+            })
         });
     })
 })
 
-app.get('/login', checkNotAuthenticated,(req, res) =>{
+app.get('/login', checkNotAuthenticated, (req, res) => {
     res.render('login.ejs')
 })
 
-app.post('/login',checkNotAuthenticated, passport.authenticate('local', {
+app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login',
     failureFlash: true
 }))
 
-app.get('/register',checkNotAuthenticated, (req, res) =>{
+app.get('/register', checkNotAuthenticated, (req, res) => {
     res.render('register.ejs')
 })
 
-app.post('/register',checkNotAuthenticated, async (req, res) =>{
-    try{
+app.post('/register', checkNotAuthenticated, async (req, res) => {
+    try {
         const salt = await bcrypt.genSalt()
         const hashedPassword = await bcrypt.hash(req.body.password, salt)
-        const { name, email} = req.body
+        const { name, email } = req.body
         const sql = "INSERT INTO user (name, email, password, role, points, rank_level) values (?, ?, ?, 'user', 0, 'Beginner')";
-        db.query(sql, [name, email, hashedPassword], (err,result) =>{
-            if(err){
+        db.query(sql, [name, email, hashedPassword], (err, result) => {
+            if (err) {
                 console.error(err);
                 return res.redirect('/register');
             }
             res.redirect('/login');
         })
-    }catch{
+    } catch {
         res.redirect('/register');
     }
 })
@@ -158,29 +138,28 @@ app.get('/upload', checkAuthenticated, (req, res) => {
     res.render('upload.ejs', { name: req.user.name });
 });
 
-app.post('/upload', upload.single('note_file'), (req, res)=>{
-    const {title, content, subtitle} = req.body;
+app.post('/upload', checkAuthenticated, (req, res) => {
+    const { title, content, subtitle } = req.body;
     const tags = req.body.tags ? req.body.tags.split(',').filter(tag => tag.trim() !== "") : [];
-    let filePath = req.file ? req.file.path : null;
-
-    if(content && filePath){
-        return res.send('<script>alert("Please choose ONLY one: either write a note OR upload a file"); window.history.back();</script>');
+    
+    if (!content || content.trim() === "") {
+        return res.send('<script>alert("Note content cannot be empty."); window.history.back();</script>');
     }
-    if(tags.length === 0){
+    if (tags.length === 0) {
         return res.send('<script>alert("You must select at least one relevant tag for your note."); window.history.back();</script>');
     }
-    if(!content && !filePath){
-        return res.send('<script>alert("Write a note or upload a file first."); window.history.back();</script>')
-    }
-    const sql = "INSERT INTO note (title, content, subtitle, file_path, uploader_id) VALUES (?, ?, ?, ?, ?)";
-    const data = [title, content, subtitle, filePath, req.user.user_id];
-    db.query(sql, data, (err,result) => {
+
+    const sql = "INSERT INTO note (title, content, subtitle, uploader_id) VALUES (?, ?, ?, ?)";
+    const data = [title, content, subtitle, req.user.user_id];
+    
+    db.query(sql, data, (err, result) => {
         if (err) {
             console.error("Upload Error:", err);
             return res.status(500).send("Database error during upload.");
         };
         const noteId = result.insertId;
         let totaltags = 0;
+        
         tags.forEach((name) => {
             db.query("INSERT IGNORE INTO tag (tag_name) VALUES (?)", [name.trim()], (err) => {
                 db.query("SELECT tag_id FROM tag WHERE tag_name = ?", [name.trim()], (err, tagResult) => {
@@ -188,7 +167,7 @@ app.post('/upload', upload.single('note_file'), (req, res)=>{
                     db.query("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)", [noteId, tagId], (err) => {
                         totaltags++;
                         if (totaltags === tags.length) {
-                            return res.redirect('/dashboard'); 
+                            return res.redirect('/dashboard');
                         }
                     });
                 });
@@ -197,12 +176,12 @@ app.post('/upload', upload.single('note_file'), (req, res)=>{
     })
 })
 
-app.get('/notes', checkAuthenticated, (req,res) =>{
-    res.render('notes.ejs', {name: req.user.name})
+app.get('/notes', checkAuthenticated, (req, res) => {
+    res.render('notes.ejs', { name: req.user.name })
 })
 
-app.get('/chat', checkAuthenticated, (req,res)=>{
-    res.render('chat.ejs', {name: req.user.name})
+app.get('/chat', checkAuthenticated, (req, res) => {
+    res.render('chat.ejs', { name: req.user.name })
 })
 
 app.get('/dashboard', checkAuthenticated, async (req, res) => {
@@ -210,12 +189,14 @@ app.get('/dashboard', checkAuthenticated, async (req, res) => {
     const userId = req.user.user_id;
     const statsQuery = `
         SELECT 
-            ( SELECT COUNT(*)FROM note WHERE uploader_id = ?) as notes_count,
+            (SELECT COUNT(*) FROM note WHERE uploader_id = ?) as notes_count,
             (SELECT IFNULL(SUM(upvotes), 0) FROM note WHERE uploader_id = ?) as total_upvotes,
             (SELECT COUNT(*) FROM saved_notes WHERE user_id = ?) as saved_count
         `;
     const notesQuery = `
-        SELECT n.*, u.name as author_name, GROUP_CONCAT(t.tag_name) as tags
+        SELECT n.note_id, n.title, n.content, n.subtitle, n.upvotes, n.created_at, 
+               u.name as author_name, 
+               GROUP_CONCAT(t.tag_name) as tags
         FROM note n
         JOIN saved_notes s ON n.note_id = s.note_id
         JOIN user u ON n.uploader_id = u.user_id
@@ -239,7 +220,7 @@ app.get('/dashboard', checkAuthenticated, async (req, res) => {
                 stats: statsResult[0],
                 savedNotes: savedNotes
             });
-        });    
+        });
     });
 });
 
@@ -261,7 +242,7 @@ app.get('/leaderboard', checkAuthenticated, (req, res) => {
     const leaderboardQuery = `
         SELECT
             COUNT(n.note_id) AS notes_uploaded,
-            IFNULL(SUM(upvotes), 0) as total_upvotes,
+            IFNULL(SUM(n.upvotes), 0) as total_upvotes,
             u.name, u.rank_level, u.points 
         FROM user u
         LEFT JOIN note n ON u.user_id = n.uploader_id
@@ -270,9 +251,9 @@ app.get('/leaderboard', checkAuthenticated, (req, res) => {
     `;
     db.query(leaderboardQuery, (err, results) => {
         if (err) {
-                    console.error("Error Loading LeaderBoard", err);
-                    return res.status(500).json({ error: "LeaderBoard failed" });
-                }
+            console.error("Error Loading LeaderBoard", err);
+            return res.status(500).json({ error: "LeaderBoard failed" });
+        }
         res.render('leaderboard', {
             name: req.user.name,
             students: results
@@ -320,16 +301,16 @@ app.post('/like-note/:id', async (req, res) => {
                     console.error("Error updating upvotes:", err);
                     return res.status(500).json({ error: "Upvote failed" });
                 }
-                db.query(pointquery, [noteId], (err) =>{
+                db.query(pointquery, [noteId], (err) => {
                     if (err) {
                         console.error("Error updating points:", err);
                         return res.status(500).json({ error: "point update failed" });
                     }
-                    db.query(rankquery, [noteId], (err) =>{
+                    db.query(rankquery, [noteId], (err) => {
                         if (err) {
-                        console.error("Error updating rank:", err);
-                        return res.status(500).json({ error: "rank update failed" });
-                    }
+                            console.error("Error updating rank:", err);
+                            return res.status(500).json({ error: "rank update failed" });
+                        }
                     })
                 })
                 res.json({ success: true, message: "Note liked and upvoted!" });
@@ -342,22 +323,21 @@ app.post('/like-note/:id', async (req, res) => {
 });
 
 app.delete('/logout', (req, res, next) => {
-    req.logOut(function(err) {
+    req.logOut(function (err) {
         if (err) { return next(err) }
         res.redirect('/login')
     })
 })
 
-function checkAuthenticated(req, res, next){
-    if(req.isAuthenticated()){
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
         return next()
     }
-
     res.redirect('/login')
 }
 
-function checkNotAuthenticated(req, res, next){
-    if(req.isAuthenticated()){
+function checkNotAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
         return res.redirect('/')
     }
     next()
@@ -367,9 +347,4 @@ const PORT = process.env.PORT || 3000;
 const ENV = process.env.NODE_ENV || 'development';
 app.listen(PORT, () => {
     console.log(`Server listening on http://localhost:${PORT} [env: ${ENV}]`);
-    if (ENV === 'production') {
-        console.log('⚙️ Running in production mode — make sure proper env vars are set.');
-    } else {
-        console.log('🔧 Running in development mode — debug logs enabled.');
-    }
 });

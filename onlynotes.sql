@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: onlynotes
 -- ------------------------------------------------------
--- Server version	10.4.32-MariaDB
+-- Server version 10.4.32-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -66,7 +66,6 @@ CREATE TABLE `note` (
   `title` varchar(255) DEFAULT NULL,
   `subtitle` varchar(255) DEFAULT NULL,
   `content` text DEFAULT NULL,
-  `file_path` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `uploader_id` int(11) NOT NULL,
   `upvotes` int(11) DEFAULT 0,
@@ -170,6 +169,47 @@ CREATE TABLE `user` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- DUMMY DATA INSERTION
+-- Assumes a user with user_id=1 exists (default for first insert)
+--
+
+-- 1. Insert 10 Dummy Tags
+INSERT INTO `tag` (`tag_name`) VALUES 
+('Physics'), ('Calculus'), ('Literature'), ('History'), ('Chemistry'), 
+('Biology'), ('Computer Science'), ('Economics'), ('Psychology'), ('Philosophy');
+
+-- 2. Insert 10 Dummy Notes (Assuming user_id=1 exists)
+INSERT INTO `note` (`title`, `subtitle`, `content`, `uploader_id`, `upvotes`) VALUES 
+('Intro to Mechanics', 'Newtonian Basics', 'Newton laws of motion explained simply. 1. Inertia...', 1, 15),
+('Derivatives 101', 'Calculus Basics', 'Understanding the rate of change and limits...', 1, 42),
+('Shakespeare Analysis', 'Hamlet Themes', 'Deep dive into the madness of Hamlet...', 1, 8),
+('WWII Overview', 'Major Events', 'Timeline of the Second World War...', 1, 25),
+('Organic Chemistry', 'Alkanes & Alkenes', 'Introduction to hydrocarbon chains...', 1, 30),
+('Cell Structure', 'Biology 101', 'Mitochondria is the powerhouse of the cell...', 1, 55),
+('Data Structures', 'Arrays & Linked Lists', 'Memory management and traversal efficiency...', 1, 120),
+('Supply & Demand', 'Microeconomics', 'How market equilibrium is reached...', 1, 10),
+('Cognitive Bias', 'Psychology', 'Understanding confirmation bias and heuristics...', 1, 18),
+('Ethics', 'Moral Philosophy', 'Utilitarianism vs Deontology...', 1, 5);
+
+-- 3. Insert Dummy Note Tags (Linking notes to tags)
+INSERT INTO `note_tag` (`note_id`, `tag_id`) VALUES 
+(1, 1), -- Mechanics -> Physics
+(2, 2), -- Derivatives -> Calculus
+(3, 3), -- Shakespeare -> Literature
+(4, 4), -- WWII -> History
+(5, 5), -- Organic Chem -> Chemistry
+(6, 6), -- Cell Structure -> Biology
+(7, 7), -- Data Structures -> CompSci
+(8, 8), -- Supply & Demand -> Economics
+(9, 9), -- Cognitive Bias -> Psychology
+(10, 10); -- Ethics -> Philosophy
+
+INSERT INTO `saved_notes` (`user_id`, `note_id`) VALUES 
+(1, 2), (1, 6), (1, 7);
+
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
