@@ -13,11 +13,28 @@ const path = require('path')
 const multer = require('multer')
 const mysql = require('mysql2');
 
+/**
+ * MySQL Connection configured from environment variables with sensible defaults.
+ *
+ * Create a env variable with following param
+ * - DB_HOST (default: 'localhost')
+ * - DB_USER (default: 'root')
+ * - DB_PASS (default: 'admin')
+ * - DB_NAME (default: 'onlynotes-db')
+ */
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || 'admin',
+    database: process.env.DB_NAME || 'onlynotes-db' 
+});
+
+db.connect((err) => {
+    if (err) {
+        console.error('Error connecting to the database:', err);
+        return;
+    }
+    console.log('Connected to the MySQL database.');
 });
 
 const initializePassport = require('./passport-config')
@@ -345,4 +362,14 @@ function checkNotAuthenticated(req, res, next){
     }
     next()
 }
-app.listen(3000)
+
+const PORT = process.env.PORT || 3000;
+const ENV = process.env.NODE_ENV || 'development';
+app.listen(PORT, () => {
+    console.log(`Server listening on http://localhost:${PORT} [env: ${ENV}]`);
+    if (ENV === 'production') {
+        console.log('⚙️ Running in production mode — make sure proper env vars are set.');
+    } else {
+        console.log('🔧 Running in development mode — debug logs enabled.');
+    }
+});
