@@ -66,7 +66,7 @@ app.get('/', checkAuthenticated, (req, res) => {
         n.*, 
         u.name AS author_name,
         u.rank_level AS author_rank,
-        GROUP_CONCAT(t.tag_name) AS tag_list
+        GROUP_CONCAT(DISTINCT t.tag_name) AS tag_list
     FROM note n
     JOIN user u ON n.uploader_id = u.user_id
     JOIN note_tag nt ON n.note_id = nt.note_id
@@ -76,29 +76,52 @@ app.get('/', checkAuthenticated, (req, res) => {
     GROUP BY n.note_id, u.name, u.rank_level
     ORDER BY n.created_at DESC 
     LIMIT 50`;
+    const trendingSql = `
+    SELECT 
+        n.*, 
+        u.name AS author_name, 
+        u.rank_level AS author_rank, 
+        GROUP_CONCAT(DISTINCT t.tag_name) AS tag_list
+    FROM note n
+    JOIN user u ON n.uploader_id = u.user_id
+    JOIN note_tag nt ON n.note_id = nt.note_id
+    JOIN tag t ON nt.tag_id = t.tag_id
+    WHERE n.uploader_id != ? 
+      AND n.note_id NOT IN (SELECT note_id FROM saved_notes WHERE user_id = ?)
+    GROUP BY n.note_id, u.name, u.rank_level
+    ORDER BY 
+        CASE u.rank_level
+            WHEN 'Master Uploader' THEN 1
+            WHEN 'Expert Uploader' THEN 2
+            WHEN 'Pro Uploader' THEN 3
+            WHEN 'Skilled Uploader' THEN 4
+            WHEN 'Active Uploader' THEN 5
+            ELSE 6 
+        END ASC,
+        n.upvotes DESC
+    LIMIT 50`;
     db.query(leaderboardsql, (err, leaderboardresult) => {
         if (err) {
             console.error("Error fetching Leaderboard", err);
-            return res.render('index.ejs', { 
-                leaderboard: [],
-                notes: [],
-                name: req.user.name 
-            });
+            leaderboardresult = [];
         }
         db.query(notesSql, [userId, userId], (err, notesresult) => {
             if (err) {
-                console.error("Error fetching Notes", err);
-                return res.render('index.ejs', { 
-                    leaderboard: leaderboardresult,
-                    notes: [], 
-                    name: req.user.name 
-                });
+                console.error("Error fetching For You Notes", err);
+                notesresult = [];
             }
+            db.query(trendingSql, [userId, userId], (err, trendingResult) => {
+                if (err) {
+                    console.error("Error fetching Trending Notes", err);
+                    trendingResult = [];
+                }
                 res.render('index.ejs', {
-                    leaderboard : leaderboardresult,
-                    notes: notesresult,
+                    leaderboard: leaderboardresult || [],
+                    forYouNotes: notesresult || [],
+                    trendingNotes: trendingResult || [],
                     name: req.user.name
                 })
+            });
         });
     })
 })

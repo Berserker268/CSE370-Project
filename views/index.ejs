@@ -110,43 +110,63 @@
                 }
                 </script>
         </aside>
-        <main class="feed-area">
-            <div class="card-stack" style="position: relative; width: 100%; height: 600px;">
-                <% if (notes && notes.length > 0) { %>
-                    <% notes.reverse().forEach((note, index) => { %>
-                        <div class="note-card" id="card-<%= index %>" data-note-id="<%= note.note_id %>" style="z-index: <%= index %>; transform: translateX(-50%) translateY(<%= (notes.length - 1 - index) * 4 %>px) scale(<%= 1 - (notes.length - 1 - index) * 0.02 %>);">
-                            <div class="tag-row">
-                                <% if (note.tag_list) { %>
-                                    <% note.tag_list.split(',').forEach(tag => { %>
-                                        <span class="mini-tag"><%= tag.toUpperCase() %></span>
-                                    <% }) %>
-                                <% } %>
-                            </div>
-                            <h3 class="card-title"><%= note.title %></h3>
-                            <div class="card-author">
-                                <a href="/profile" style="display: block; transition: opacity 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                                    <img src="https://ui-avatars.com/api/?name=<%= note.author_name %>&background=a855f7&color=fff" style="width:22px; height:22px; border-radius:50%;">
-                                </a>
-                                <span>by <%= note.author_name %></span>
-                                <span class="profile tag" style="margin-top: 10px;"><%= note.author_rank %></span>
-                                <span style="margin-left: auto;"><i class="fa-solid fa-thumbs-up"></i> <%= note.upvotes || 0 %></span>
-                            </div>
-                            <div class="card-body">
-                                "<%= note.subtitle %>"
-                            </div>
-                            <div class="card-actions">
-                                <button class="btn-circle btn-reject" onclick="swipeCard(<%= index %>, 'left')"><i class="fa-solid fa-xmark" style="color: red;"></i></button>
-                                <button class="btn-circle btn-heart" onclick="swipeCard(<%= index %>, 'right')"><i class="fa-solid fa-heart" style="color: #00ff88;"></i></button>
-                            </div>
-                        </div>
-                    <% }) %>
-                <% } %>
-                <div id="empty-msg" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 300px; color: #94a3b8;">
-                        <p style="font-size: 1.2rem;">No more notes!</p>
-                        <p style="font-size: 0.9rem;">Check back later.</p>
+<main class="feed-area">
+    <div id="foryou-container" class="card-stack" style="position: relative; width: 100%; height: 600px;">
+        <% if (forYouNotes && forYouNotes.length > 0) { %>
+            <% forYouNotes.reverse().forEach((note, index) => { %>
+                <div class="note-card" id="card-<%= index %>" data-note-id="<%= note.note_id %>" style="z-index: <%= index %>; transform: translateX(-50%) translateY(<%= (forYouNotes.length - 1 - index) * 4 %>px) scale(<%= 1 - (forYouNotes.length - 1 - index) * 0.02 %>);">
+                    <div class="tag-row">
+                        <% if (note.tag_list) { %>
+                            <% note.tag_list.split(',').forEach(tag => { %>
+                                <span class="mini-tag"><%= tag.toUpperCase() %></span>
+                            <% }) %>
+                        <% } %>
+                    </div>
+                    <h3 class="card-title"><%= note.title %></h3>
+                    <div class="card-author">
+                        <img src="https://ui-avatars.com/api/?name=<%= note.author_name %>&background=a855f7&color=fff" style="width:22px; height:22px; border-radius:50%;">
+                        <span>by <%= note.author_name %></span>
+                        <span class="profile tag"><%= note.author_rank %></span>
+                        <span style="margin-left: auto;"><i class="fa-solid fa-thumbs-up"></i> <%= note.upvotes || 0 %></span>
+                    </div>
+                    <div class="card-body">"<%= note.subtitle %>"</div>
+                    <div class="card-actions">
+                        <button class="btn-circle btn-reject" onclick="swipeCard(<%= index %>, 'left')"><i class="fa-solid fa-xmark" style=" color: red;"></i></button>
+                        <button class="btn-circle btn-heart" onclick="swipeCard(<%= index %>, 'right')"><i class="fa-solid fa-heart" style=" color: #00ff88;"></i></button>
+                    </div>
                 </div>
-            </div>
-        </main>
+            <% }) %>
+        <% } %>
+    </div>
+
+    <div id="trending-container" class="card-stack" style="position: relative; width: 100%; height: 600px; display: none;">
+        <% if (trendingNotes && trendingNotes.length > 0) { %>
+            <% trendingNotes.forEach((note, index) => { %>
+                <div class="note-card trending-card" id="trending-card-<%= index %>" data-note-id="<%= note.note_id %>" style="z-index: <%= trendingNotes.length - index %>; transform: translateX(-50%) translateY(<%= index * 4 %>px) scale(<%= 1 - (index * 0.02) %>);">
+                    <div class="tag-row">
+                        <% if (note.tag_list) { %>
+                            <% note.tag_list.split(',').forEach(tag => { %>
+                                <span class="mini-tag"><%= tag.toUpperCase() %></span>
+                            <% }) %>
+                        <% } %>
+                    </div>
+                    <h3 class="card-title"><%= note.title %></h3>
+                    <div class="card-author">
+                        <img src="https://ui-avatars.com/api/?name=<%= note.author_name %>&background=a855f7&color=fff" style="width:22px; height:22px; border-radius:50%;">
+                        <span>by <%= note.author_name %></span>
+                        <span class="profile tag"><%= note.author_rank %></span>
+                        <span style="margin-left: auto;"><i class="fa-solid fa-thumbs-up"></i> <%= note.upvotes || 0 %></span>
+                    </div>
+                    <div class="card-body">"<%= note.subtitle %>"</div>
+                    <div class="card-actions">
+                        <button class="btn-circle btn-reject" onclick="swipeCard(<%= index %>, 'left', true)"><i class="fa-solid fa-xmark" style=" color: red;"></i></button>
+                        <button class="btn-circle btn-heart" onclick="swipeCard(<%= index %>, 'right', true)"><i class="fa-solid fa-heart" style=" color: #00ff88;"></i></button>
+                    </div>
+                </div>
+            <% }) %>
+        <% } %>
+    </div>
+</main>
 
         <aside id="sidebar-right" class="sidebar-right hidden">
             <div class="leaderboard-card">

@@ -9,18 +9,23 @@ function switchTab(tabName) {
         document.getElementById('btn-foryou').classList.add('active');
         if(filterSection) filterSection.style.display = 'block';
         if(leaderboard) leaderboard.classList.add('hidden');
+        forYouContainer.style.display = 'block';
+        trendingContainer.style.display = 'none';
     } 
     
     else if (tabName === 'trending') {
         document.getElementById('btn-trending').classList.add('active');
         if(filterSection) filterSection.style.display = 'none';
         if(leaderboard) leaderboard.classList.remove('hidden');
+        forYouContainer.style.display = 'none';
+        trendingContainer.style.display = 'block';
     }
 
 }
 
-async function swipeCard(index, direction) {
-    const card = document.getElementById(`card-${index}`);
+async function swipeCard(index, direction, isTrending = false) {
+    const idPrefix = isTrending ? 'trending-card-' : 'card-';
+    const card = document.getElementById(`${idPrefix}${index}`);
     if (!card) return;
 
     const noteId = card.getAttribute('data-note-id');
@@ -86,14 +91,14 @@ window.addEventListener('mouseup', (e) => {
     const threshold = 150; // Pixels needed to trigger a swipe
 
     if (Math.abs(deltaX) > threshold) {
-        const noteId = currentCard.id.split('-')[1];
+        const isTrending = currentCard.id.includes('trending');
+        const idParts = currentCard.id.split('-');
+        const index = idParts[idParts.length - 1];
+
         if (deltaX > threshold) {
-            swipeCard(noteId, 'right'); 
-        }
-        currentCard.remove(); 
-        const remainingCards = document.querySelectorAll('.card');
-        if (remainingCards.length === 0) {
-            document.getElementById('empty-msg').style.display = 'flex';
+            swipeCard(index, 'right', isTrending); 
+        } else {
+            swipeCard(index, 'left', isTrending);
         }
     } else {
         currentCard.style.transform = 'translateX(-50%) rotate(0deg)';
