@@ -39,44 +39,91 @@
             </div>
         </aside>
         <main class="profile-container">
+            <% 
+                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                const joinedDate = new Date(user.created_at).toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric'
+                });
+            %>
             <section class="profile username card">
-                <div class="profile avatar">PA</div>
-                <h2 class="profile name">Paromita Rasheed</h2>
-                <p class="profile email">Email: paromita@example.com</p>
-                <p class="profile handle">Username: paromita_r</p>
-                <p class="profile joined">Member since 20 Jan 2024</p>
-                <span class="profile badge">Level: Top Contributor</span>
+                <div class="profile avatar"><%= initials %></div>
+                <h2 class="profile name"><%= user.name %></h2>
+                <p class="profile email">Email: <%= user.email %></p>
+                <p class="profile joined">Member since <%= joinedDate %></p>
+                <span class="profile badge">Level: <%= user.rank_level %></span>
                 <div class="profile stats">
                     <div class="profile stat">
                         <h4>Notes</h4>
-                        <p>45</p>        
+                        <p><%= stats.notes_count %></p>        
                     </div>
                     <div class="profile stat"> 
                         <h4>Upvotes</h4>
-                        <p>220</p>      
+                        <p><%= stats.total_upvotes %></p>      
                     </div>    
                     <div class="profile stat">    
-                        <h4>Uploads</h4>    
-                        <p>330</p>       
+                        <h4>Saved</h4>    
+                        <p><%= stats.saved_count %></p>       
                     </div>
                 </div>
             </section>
             <section class="profile interests">
                 <h2>Uploaded Notes</h2>
-                <div class="profile cards">
-                    <a href="/notes" class="profile topic-card note-button">
-                        <div class="card-inner">
-                            <span class="profile tag">CSE330</span>
-                            <h3 class="note-title">Bisection Method</h3>
-                            <div class="note-info">
-                                <span><i class="fa-solid fa-house-chimney-user"></i> 25 Upvotes</span>
-                                <span><i class="fa-solid fa-file-lines"></i> by Paromita Rashed</span>
-                            </div>
-                        </div>
-                    </a>
+                <div class="profile cards" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+                    <% if (uploadedNotes.length > 0) { %>
+                        <% uploadedNotes.forEach(note => { %>
+                            <a href="javascript:void(0)" 
+                               class="profile topic-card note-button" 
+                               data-title="<%= note.title %>"
+                               data-content="<%= note.content %>"
+                               onclick="openNoteModal(this)">
+                                <div class="card-inner">
+                                    <% if (note.tags) { %>
+                                        <% note.tags.split(',').forEach(singleTag => { %>
+                                            <span class="profile tag"><%= singleTag %></span>
+                                        <% }) %>
+                                    <% } %>
+                                    <h3 class="note-title"><%= note.title %></h3>
+                                    <div class="note-info">
+                                        <span><i class="fa-solid fa-house-chimney-user"></i> <%= note.upvotes %> Upvotes</span>
+                                        <span><i class="fa-solid fa-file-lines"></i> by <%= note.author_name %></span>
+                                    </div>
+                                </div>
+                            </a>
+                        <% }) %>
+                    <% } else { %>
+                        <p style="color: #b9b9c9; text-align: center; width: 100%; padding-top: 20px;">
+                            You haven't uploaded any notes yet.
+                        </p>
+                    <% } %>
                 </div>
             </section>
         </main>
     </div>
+
+    <!-- Note Modal Structure -->
+    <div id="noteModal" class="modal-overlay" onclick="closeNoteModal(event)">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeNoteModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <div id="modalContent" class="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        function openNoteModal(element) {
+            const title = element.getAttribute('data-title');
+            const content = element.getAttribute('data-content');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalContent').innerText = content;
+            document.getElementById('noteModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function closeNoteModal(event) {
+            if (event && event.target !== document.getElementById('noteModal')) return;
+            document.getElementById('noteModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; 
+        }
+    </script>
 </body>
 </html>

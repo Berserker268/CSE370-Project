@@ -52,7 +52,11 @@
                     <% if (savedNotes.length > 0) { %>
                         <% savedNotes.forEach(note => { %>
                             <div class="note-card-wrapper" style="position: relative; width: fit-content;">
-                                <a href="/notes" class="profile topic-card note-button">
+                                <a href="javascript:void(0)" 
+                                   class="profile topic-card note-button" 
+                                   data-title="<%= note.title %>"
+                                   data-content="<%= note.content %>"
+                                   onclick="openNoteModal(this)">
                                     <div class="card-inner" style="position: relative; padding-right: 40px;">                            
                                         <% if (note.tags) { %>
                                             <% note.tags.split(',').forEach(singleTag => { %>
@@ -83,5 +87,59 @@
             </div>
         </main>
     </div>
+
+    <!-- 
+        Note Modal Structure 
+        A "Modal" is a popup window. 
+        - The 'modal-overlay' is the blurred background.
+        - The 'modal-card' is the actual box containing the note.
+    -->
+    <div id="noteModal" class="modal-overlay" onclick="closeNoteModal(event)">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <!-- Close button (Cross) -->
+            <button class="modal-close" onclick="closeNoteModal()"><i class="fa-solid fa-xmark"></i></button>
+            
+            <!-- Dynamic content filled by JavaScript -->
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <div id="modalContent" class="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Opens the modal and populates it with note data.
+         * @param {HTMLElement} element - The clicked anchor element containing data attributes.
+         */
+        function openNoteModal(element) {
+            // Retrieve title and content from the data attributes we added to the <a> tag
+            const title = element.getAttribute('data-title');
+            const content = element.getAttribute('data-content');
+            
+            // Inject the text into the modal elements
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalContent').innerText = content;
+            
+            // Show the modal by changing display from 'none' to 'flex'
+            document.getElementById('noteModal').style.display = 'flex';
+            
+            // Disable scrolling on the main page while the modal is open
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        /**
+         * Closes the modal.
+         * @param {Event} [event] - Optional click event to check if the user clicked the background.
+         */
+        function closeNoteModal(event) {
+            // If an event exists, only close if the user clicked the overlay itself (not the card)
+            if (event && event.target !== document.getElementById('noteModal')) return;
+            
+            // Hide the modal
+            document.getElementById('noteModal').style.display = 'none';
+            
+            // Re-enable scrolling on the main page
+            document.body.style.overflow = 'auto'; 
+        }
+    </script>
 </body>
 </html>

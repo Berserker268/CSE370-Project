@@ -258,7 +258,42 @@ app.get('/leaderboard', checkAuthenticated, (req, res) => {
 });
 
 app.get('/profile', checkAuthenticated, (req, res) => {
-    res.render('profile.ejs', { name: req.user.name });
+    const userId = req.user.user_id;
+    const statsQuery = `
+        SELECT 
+            (SELECT COUNT(*) FROM note WHERE uploader_id = ?) as notes_count,
+            (SELECT IFNULL(SUM(upvotes), 0) FROM note WHERE uploader_id = ?) as total_upvotes,
+            (SELECT COUNT(*) FROM saved_notes WHERE user_id = ?) as saved_count
+    `;
+    const uploadedNotesQuery = `
+        SELECT n.*, u.name as author_name, GROUP_CONCAT(t.tag_name) as tags
+        FROM note n
+        JOIN user u ON n.uploader_id = u.user_id
+        LEFT JOIN note_tag nt ON n.note_id = nt.note_id
+        LEFT JOIN tag t ON nt.tag_id = t.tag_id
+        WHERE n.uploader_id = ?
+        GROUP BY n.note_id
+        ORDER BY n.created_at DESC
+    `;
+
+    db.query(statsQuery, [userId, userId, userId], (err, statsResult) => {
+        if (err) {
+            console.error("Database Error:", err);
+            return res.status(500).send("Error fetching stats");
+        }
+        db.query(uploadedNotesQuery, [userId], (err, uploadedNotes) => {
+            if (err) {
+                console.error("Database Error:", err);
+                return res.status(500).send("Error fetching uploaded notes");
+            }
+            res.render('profile', {
+                user: req.user,
+                name: req.user.name,
+                stats: statsResult[0],
+                uploadedNotes: uploadedNotes
+            });
+        });
+    });
 });
 
 app.post('/like-note/:id', async (req, res) => {
