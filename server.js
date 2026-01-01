@@ -144,7 +144,7 @@ app.post('/upload', checkAuthenticated, (req, res)=>{
     const tags = req.body.tags ? req.body.tags.split(',').filter(tag => tag.trim() !== "") : [];
 
     if(tags.length === 0){
-        return res.send('<script>alert("You must select at least one relevant tag for your note."); window.history.back();</script>');
+        return res.send('<script>alert("You must select at least one relevant tag for your note and press enter."); window.history.back();</script>');
     }
     if(!content){
         return res.send('<script>alert("Write a note first."); window.history.back();</script>')
