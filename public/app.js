@@ -3,7 +3,6 @@ function switchTab(tabName) {
     const leaderboard = document.getElementById('sidebar-right');
     const navButtons = document.querySelectorAll('.tab-btn');
 
-    // Reset button colors
     navButtons.forEach(btn => btn.classList.remove('active'));
 
     if (tabName === 'foryou') {
@@ -18,11 +17,6 @@ function switchTab(tabName) {
         if(leaderboard) leaderboard.classList.remove('hidden');
     }
 
-    else if (tabName === 'following') {
-        document.getElementById('btn-following').classList.add('active');
-        if(filterSection) filterSection.style.display = 'none';
-        if(leaderboard) leaderboard.classList.add('hidden');
-    }
 }
 
 async function swipeCard(index, direction) {
@@ -32,7 +26,6 @@ async function swipeCard(index, direction) {
     const noteId = card.getAttribute('data-note-id');
 
     if (direction === 'right') {
-        // MATCHING YOUR CSS: We only change the X-axis and add rotation
         card.style.transform = "translateX(200%) rotate(30deg)"; 
         card.style.opacity = "0";
 
@@ -61,7 +54,6 @@ let isDragging = false;
 let startX = 0;
 let currentCard = null;
 
-// Attach listeners to all cards
 document.querySelectorAll('.note-card').forEach(card => {
     card.addEventListener('mousedown', startDrag);
 });
@@ -70,7 +62,7 @@ function startDrag(e) {
     isDragging = true;
     currentCard = e.currentTarget;
     startX = e.clientX;
-    currentCard.style.transition = 'none'; // Disable transition while dragging
+    currentCard.style.transition = 'none';
     currentCard.style.cursor = 'grabbing';
 }
 

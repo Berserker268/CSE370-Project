@@ -3,9 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard</title>
+    <title>Leaderboard | OnlyNotes</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <h1>Leaderboard</h1>
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">N</div>
+            <span class="logo-text">OnlyNotes</span>
+        </div>
+        <div class="user-profile">
+            <a href="/profile" style="display: block; transition: opacity 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                <img src="https://ui-avatars.com/api/?name=<%= name %>&background=a855f7&color=fff" style="width: 40px; height: 40px; border-radius: 50%;">
+            </a>
+        </div>
+    </header>
+    <div class="app-container">
+        <aside class="sidebar-left">
+            <div class="sidebar-group">
+                <p class="group-title">UTILITIES</p>
+                <a href="/" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-home text-purple-500"></i> Home Page</button>
+                </a>
+                <a href="/upload" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-plus text-purple-500"></i> Upload Note</button>
+                </a>
+                <a href="/chat" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-message text-purple-500"></i> Chat</button>
+                </a>
+                <a href="/dashboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-receipt text-purple-500"></i> Dashboard</button>
+                </a>
+                <form action="/logout?_method=DELETE" method="POST" style="text-decoration: none;">
+                    <button type="submit" class="menu-item upload-btn"><i class="fa-solid fa-right-from-bracket text-purple-500"></i> Sign Out</button>
+                </form>
+            </div>
+        </aside>
+        <main class="chat-page-wrapper">
+            <div class="leaderboard main">
+                <div class="leaderboard leaderboard-section">
+                    <h2>Leaderboard</h2>
+                    <table class="leaderboard table">
+                        <thead>
+                            <tr class="leaderboard tr">
+                                <th class="leaderboard th">Rank</th>
+                                <th class="leaderboard th">User</th>
+                                <th class="leaderboard th">Notes Uploaded</th>
+                                <th class="leaderboard th">Upvotes</th>
+                                <th class="leaderboard th">Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="leaderboard tr">
+                                <td class="leaderboard rank">1</td>
+                                <td>Paromita</td>
+                                <td>45</td>
+                                <td>320</td>
+                                <td>3200</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>

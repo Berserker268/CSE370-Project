@@ -3,9 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Dashboard | OnlyNotes</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <h1>Dashboard</h1>
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">N</div>
+            <span class="logo-text">OnlyNotes</span>
+        </div>
+        <div class="user-profile">
+            <a href="/profile" style="display: block; transition: opacity 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                <img src="https://ui-avatars.com/api/?name=<%= name %>&background=a855f7&color=fff" style="width: 40px; height: 40px; border-radius: 50%;">
+            </a>
+        </div>
+    </header>
+    <div class="app-container">
+        <aside class="sidebar-left">
+            <div class="sidebar-group">
+                <p class="group-title">UTILITIES</p>
+                <a href="/" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-home text-purple-500"></i> Home Page</button>
+                </a>
+                <a href="/upload" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-plus text-purple-500"></i> Upload Note</button>
+                </a>
+                <a href="/chat" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-message text-purple-500"></i> Chat</button>
+                </a>
+                <a href="/leaderboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-trophy text-purple-500"></i> Leaderboard</button>
+                </a>
+                <form action="/logout?_method=DELETE" method="POST" style="text-decoration: none;">
+                    <button type="submit" class="menu-item upload-btn"><i class="fa-solid fa-right-from-bracket text-purple-500"></i> Sign Out</button>
+                </form>
+            </div>
+        </aside>
+        <main class="chat-page-wrapper">
+            <div class="dashboard main">
+                <div class="dashboard cards">
+                    <div class="dashboard card"><h3>Your Notes</h3><p><%= stats.notes_count %></p></div>
+                    <div class="dashboard card"><h3>Upvotes</h3><p><%= stats.total_upvotes %></p></div>
+                    <div class="dashboard card"><h3>Saved</h3><p><%= stats.saved_count %></p></div>
+                </div>
+                <div class="dashboard notes-container">
+                    <% if (savedNotes.length > 0) { %>
+                        <% savedNotes.forEach(note => { %>
+                            <a href="/notes" class="profile topic-card note-button">
+                                <div class="card-inner">
+                                    <span class="profile tag">CSE330</span> 
+                                    <h3 class="note-title"><%= note.title %></h3>                           
+                                    <div class="note-info">
+                                        <span><i class="fa-solid fa-file-lines"></i> by <%= note.author_name %></span>
+                                    </div>                    
+                                </div>
+                            </a>
+                        <% }) %>
+                    <% } else { %>
+                        <p style="color: #b9b9c9; text-align: center; width: 100%; padding-top: 20px;">
+                            No saved notes found! Swipe right on the "For You" page to save.
+                        </p>
+                    <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>

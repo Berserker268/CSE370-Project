@@ -3,9 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
+    <title>OnlyNotes | Messenger</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <h1>Chat</h1>
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">N</div>
+            <span class="logo-text">OnlyNotes</span>
+        </div>
+        <div class="user-profile">
+            <img src="https://ui-avatars.com/api/?name=<%= name %>&background=a855f7&color=fff" style="width: 40px; height: 40px; border-radius: 50%;">
+        </div>
+    </header>
+    <div class="app-container">
+        <aside class="sidebar-left">
+            <div class="sidebar-group">
+                <p class="group-title">UTILITIES</p>
+                <a href="/" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-home text-purple-500"></i> Home Page</button>
+                </a>
+                <a href="/upload" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-plus text-purple-500"></i> Upload Note</button>
+                </a>
+                <a href="/dashboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-receipt text-purple-500"></i> Dashboard</button>
+                </a>
+                <a href="/leaderboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-trophy text-purple-500"></i> Leaderboard</button>
+                </a>
+                <form action="/logout?_method=DELETE" method="POST" style="text-decoration: none;">
+                    <button type="submit" class="menu-item upload-btn"><i class="fa-solid fa-right-from-bracket text-purple-500"></i> Sign Out</button>
+                </form>
+            </div>
+        </aside>
+        <main class="chat-page-wrapper">
+            <div class="chat messenger-container">
+                <div class="chat contacts-list">
+                    <div class="chat contact">
+                        <img src="https://ui-avatars.com/api/?name=Paromita&background=a855f7&color=fff">
+                        <span>Paromita</span>
+                    </div>
+                    <div class="chat contact">
+                        <img src="https://ui-avatars.com/api/?name=Rashed&background=a855f7&color=fff">
+                        <span>Mahdi</span>
+                    </div>
+                    <div class="chat contact">
+                        <img src="https://ui-avatars.com/api/?name=Alex&background=a855f7&color=fff">
+                        <span>Alex</span>
+                    </div>
+                </div>
+                <div class="chat chat-window">
+                    <div class="chat chat-header">
+                        <a href="/profile" class="profile-link">
+                            <img src="https://ui-avatars.com/api/?name=Paromita&background=a855f7&color=fff" class="profile-icon">
+                        </a>
+                        <span>Paromita</span>
+                    </div>
+                    <div class="chat chat-messages">
+                        <div class="chat message contact">Hello! How are you?</div>
+                        <div class="chat message user">Hi! I'm good, thanks!</div>
+                        <div class="chat message contact">Did you finish your notes?</div>
+                        <div class="chat message user">Yes, just uploaded them.</div>
+                    </div>
+                    <div class="chat chat-input">
+                        <input type="text" placeholder="Type a message...">
+                        <button>Send</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>

@@ -3,9 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+    <title>Profile | OnlyNotes</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <h1>Profile</h1>
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">N</div>
+            <span class="logo-text">OnlyNotes</span>
+        </div>
+        <div class="user-profile">
+            <img src="https://ui-avatars.com/api/?name=<%= name %>&background=a855f7&color=fff" style="width: 40px; height: 40px; border-radius: 50%;">
+        </div>
+    </header>
+    <div class="app-container">
+        <aside class="sidebar-left">
+            <div class="sidebar-group">
+                <p class="group-title">UTILITIES</p>
+                <a href="/" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-home text-purple-500"></i> Home Page</button>
+                </a>
+                <a href="/upload" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-plus text-purple-500"></i> Upload Note</button>
+                </a>
+                <a href="/dashboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-receipt text-purple-500"></i> Dashboard</button>
+                </a>
+                <a href="/leaderboard" style="text-decoration: none; color: inherit;">
+                  <button class="menu-item upload-btn"><i class="fa-solid fa-trophy text-purple-500"></i> Leaderboard</button>
+                </a>
+                <form action="/logout?_method=DELETE" method="POST" style="text-decoration: none;">
+                    <button type="submit" class="menu-item upload-btn"><i class="fa-solid fa-right-from-bracket text-purple-500"></i> Sign Out</button>
+                </form>
+            </div>
+        </aside>
+        <main class="profile-container">
+            <section class="profile username card">
+                <div class="profile avatar">PA</div>
+                <h2 class="profile name">Paromita Rasheed</h2>
+                <p class="profile email">Email: paromita@example.com</p>
+                <p class="profile handle">Username: paromita_r</p>
+                <p class="profile joined">Member since 20 Jan 2024</p>
+                <span class="profile badge">Level: Top Contributor</span>
+                <div class="profile stats">
+                    <div class="profile stat">
+                        <h4>Notes</h4>
+                        <p>45</p>        
+                    </div>
+                    <div class="profile stat"> 
+                        <h4>Upvotes</h4>
+                        <p>220</p>      
+                    </div>    
+                    <div class="profile stat">    
+                        <h4>Uploads</h4>    
+                        <p>330</p>       
+                    </div>
+                </div>
+            </section>
+            <section class="profile interests">
+                <h2>Uploaded Notes</h2>
+                <div class="profile cards">
+                    <a href="/notes" class="profile topic-card note-button">
+                        <div class="card-inner">
+                            <span class="profile tag">CSE330</span>
+                            <h3 class="note-title">Bisection Method</h3>
+                            <div class="note-info">
+                                <span><i class="fa-solid fa-house-chimney-user"></i> 25 Upvotes</span>
+                                <span><i class="fa-solid fa-file-lines"></i> by Paromita Rashed</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
 </body>
 </html>

@@ -187,8 +187,39 @@ app.get('/chat', checkAuthenticated, (req,res)=>{
     res.render('chat.ejs', {name: req.user.name})
 })
 
-app.get('/dashboard', checkAuthenticated, (req, res) => {
-    res.render('dashboard.ejs', { name: req.user.name });
+app.get('/dashboard', checkAuthenticated, async (req, res) => {
+    const userName = req.user.name;
+    const userId = req.user.user_id;
+    const statsQuery = `
+        SELECT 
+            (SELECT COUNT(*) FROM note WHERE uploader_id = ?) as notes_count,
+            (SELECT IFNULL(SUM(upvotes), 0) FROM note WHERE uploader_id = ?) as total_upvotes,
+            (SELECT COUNT(*) FROM saved_notes WHERE user_id = ?) as saved_count
+        `;
+    const notesQuery = `
+        SELECT n.*, u.name as author_name 
+        FROM note n
+        JOIN saved_notes s ON n.note_id = s.note_id
+        JOIN user u ON n.uploader_id = u.user_id
+         WHERE s.user_id = ?
+    `;
+    db.query(statsQuery, [userId, userId, userId], (err, statsResult) => {
+        if (err) {
+            console.error("Database Error:", err);
+            return res.status(500).send("Error fetching stats");
+        }
+        db.query(notesQuery, [userId], (err, savedNotes) => {
+            if (err) {
+                console.error("Database Error:", err);
+                return res.status(500).send("Error fetching saved notes");
+            }
+            res.render('dashboard', {
+                name: userName,
+                stats: statsResult[0],
+                savedNotes: savedNotes
+            });
+        });    
+    });
 });
 
 app.get('/leaderboard', checkAuthenticated, (req, res) => {
