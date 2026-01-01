@@ -289,4 +289,14 @@ function checkNotAuthenticated(req, res, next){
     }
     next()
 }
-app.listen(3000)
+
+const PORT = process.env.PORT || 3000;
+const ENV = process.env.NODE_ENV || 'development';
+app.listen(PORT, () => {
+    console.log(`Server listening on http://localhost:${PORT} [env: ${ENV}]`);
+    if (ENV === 'production') {
+        console.log('⚙️ Running in production mode — make sure proper env vars are set.');
+    } else {
+        console.log('🔧 Running in development mode — debug logs enabled.');
+    }
+});
