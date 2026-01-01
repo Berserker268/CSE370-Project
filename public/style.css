@@ -488,28 +488,25 @@ textarea.text:focus {
   padding: 20px;
   border-radius: 10px;
   height: 150px;
-  
-  /* Add these lines to center everything */
   display: flex;
-  flex-direction: column;   /* Stack H3 and P vertically */
-  justify-content: center;  /* Center vertically */
-  align-items: center;      /* Center horizontally */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
 }
 
 .dashboard.card h3 {
   font-size: 14px;
   color: #c084fc;
-  margin-bottom: 10px;      /* Adds a little space above the number */
+  margin-bottom: 10px;
 }
 
 .dashboard.card p {
-  font-size: 32px;          /* Made slightly larger for better focus */
+  font-size: 32px;
   color: #ffffff;
   font-weight: bold;
 }
 
-/* Notes Container */
 .dashboard.notes-container {
     display: flex;
     gap: 20px;
@@ -520,7 +517,6 @@ textarea.text:focus {
   flex: 1;
 }
 
-/* Notes Section */
 .dashboard.notes-section {
   background-color: #0f0f0f;
   border-radius: 10px;
@@ -533,7 +529,6 @@ textarea.text:focus {
   color: #c084fc;
 }
 
-/* Scrollable Notes */
 .dashboard.notes-scroll {
   max-height: 300px;
   overflow-y: scroll;
@@ -575,15 +570,40 @@ textarea.text:focus {
   border-color: #c084fc;
 }
 
+.delete-form-inline {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+    margin: 0;
+}
+
+.delete-icon-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-icon-btn:hover {
+    background: #ff4444;
+    color: white;
+    border-color: #ff4444;
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+    transform: translateY(-2px);
+}
+
 .leaderboard.main {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
 }
-
-/* ========================= */
-/* Leaderboard Section */
-/* ========================= */
 
 .leaderboard.leaderboard-section {
   background-color: #0f0f0f;
@@ -597,7 +617,6 @@ textarea.text:focus {
   color: #c084fc;
 }
 
-/* Table */
 .leaderboard table {
   width: 100%;
   border-collapse: collapse;
@@ -620,7 +639,6 @@ textarea.text:focus {
   background-color: #141414;
 }
 
-/* Rank Highlight */
 .leaderboard .rank {
   font-weight: bold;
   color: #facc15;

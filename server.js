@@ -14,10 +14,10 @@ const multer = require('multer')
 const mysql = require('mysql2');
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',      
-    password: '',      
-    database: 'onlynotes'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 
 const initializePassport = require('./passport-config')
@@ -67,6 +67,7 @@ app.get('/', checkAuthenticated, (req, res) => {
     SELECT 
         n.*, 
         u.name AS author_name,
+        u.rank_level AS author_rank,
         GROUP_CONCAT(t.tag_name) AS tag_list
     FROM note n
     JOIN user u ON n.uploader_id = u.user_id
@@ -74,7 +75,7 @@ app.get('/', checkAuthenticated, (req, res) => {
     JOIN tag t ON nt.tag_id = t.tag_id
     WHERE n.uploader_id != ? 
       AND n.note_id NOT IN (SELECT note_id FROM saved_notes WHERE user_id = ?)
-    GROUP BY n.note_id
+    GROUP BY n.note_id, u.name, u.rank_level
     ORDER BY n.created_at DESC 
     LIMIT 50`;
     db.query(leaderboardsql, (err, leaderboardresult) => {
@@ -192,16 +193,19 @@ app.get('/dashboard', checkAuthenticated, async (req, res) => {
     const userId = req.user.user_id;
     const statsQuery = `
         SELECT 
-            (SELECT COUNT(*) FROM note WHERE uploader_id = ?) as notes_count,
+            ( SELECT COUNT(*)FROM note WHERE uploader_id = ?) as notes_count,
             (SELECT IFNULL(SUM(upvotes), 0) FROM note WHERE uploader_id = ?) as total_upvotes,
             (SELECT COUNT(*) FROM saved_notes WHERE user_id = ?) as saved_count
         `;
     const notesQuery = `
-        SELECT n.*, u.name as author_name 
+        SELECT n.*, u.name as author_name, GROUP_CONCAT(t.tag_name) as tags
         FROM note n
         JOIN saved_notes s ON n.note_id = s.note_id
         JOIN user u ON n.uploader_id = u.user_id
-         WHERE s.user_id = ?
+        LEFT JOIN note_tag nt ON n.note_id = nt.note_id
+        LEFT JOIN tag t ON nt.tag_id = t.tag_id
+        WHERE s.user_id = ?
+        GROUP BY n.note_id
     `;
     db.query(statsQuery, [userId, userId, userId], (err, statsResult) => {
         if (err) {
@@ -222,8 +226,41 @@ app.get('/dashboard', checkAuthenticated, async (req, res) => {
     });
 });
 
+app.post('/unsave-note/:id', (req, res) => {
+    const noteId = req.params.id;
+    const userId = req.user.user_id;
+    const deleteQuery = `DELETE FROM saved_notes WHERE user_id = ? AND note_id = ?`;
+    db.query(deleteQuery, [userId, noteId], (err, result) => {
+        if (err) return res.status(500).send("Error unsaving note");
+        const decrementQuery = `UPDATE note SET upvotes = GREATEST(0, upvotes - 1) WHERE note_id = ?`;
+        db.query(decrementQuery, [noteId], (err, updateResult) => {
+            if (err) return res.status(500).send("Error updating upvote count");
+            res.redirect('/dashboard');
+        });
+    });
+});
+
 app.get('/leaderboard', checkAuthenticated, (req, res) => {
-    res.render('leaderboard.ejs', { name: req.user.name });
+    const leaderboardQuery = `
+        SELECT
+            COUNT(n.note_id) AS notes_uploaded,
+            IFNULL(SUM(upvotes), 0) as total_upvotes,
+            u.name, u.rank_level, u.points 
+        FROM user u
+        LEFT JOIN note n ON u.user_id = n.uploader_id
+        GROUP BY u.user_id, u.name, u.rank_level, u.points
+        ORDER BY u.points DESC
+    `;
+    db.query(leaderboardQuery, (err, results) => {
+        if (err) {
+                    console.error("Error Loading LeaderBoard", err);
+                    return res.status(500).json({ error: "LeaderBoard failed" });
+                }
+        res.render('leaderboard', {
+            name: req.user.name,
+            students: results
+        });
+    });
 });
 
 app.get('/profile', checkAuthenticated, (req, res) => {
@@ -241,16 +278,43 @@ app.post('/like-note/:id', async (req, res) => {
     try {
         const query = "INSERT INTO saved_notes (user_id, note_id) VALUES (?, ?)";
         const updateQuery = "UPDATE note SET upvotes = upvotes + 1 WHERE note_id = ?";
-        db.query(query, [userId, noteId], (err, result) => {
+        const pointquery = "UPDATE user u JOIN note n ON u.user_id = n.uploader_id SET u.points = u.points + 10 WHERE n.note_id = ?";
+        const rankquery = `
+        UPDATE user u
+        JOIN note n ON u.user_id = n.uploader_id
+        SET u.rank_level =
+            CASE
+                WHEN u.points >= 300 THEN 'Master Uploader'
+                WHEN u.points >= 200 THEN 'Expert Uploader'
+                WHEN u.points >= 150 THEN 'Pro Uploader'
+                WHEN u.points >= 100 THEN 'Skilled Uploader'
+                WHEN u.points >= 50  THEN 'Active Uploader'
+                ELSE 'New Uploader'
+            END
+        WHERE n.note_id = ?
+        `;
+        db.query(query, [userId, noteId], (err) => {
             if (err) {
                 console.error("Error inserting into saved_notes:", err);
                 return res.status(500).json({ error: "Database error" });
             }
-            db.query(updateQuery, [noteId], (err, updateResult) => {
+            db.query(updateQuery, [noteId], (err) => {
                 if (err) {
                     console.error("Error updating upvotes:", err);
                     return res.status(500).json({ error: "Upvote failed" });
                 }
+                db.query(pointquery, [noteId], (err) =>{
+                    if (err) {
+                        console.error("Error updating points:", err);
+                        return res.status(500).json({ error: "point update failed" });
+                    }
+                    db.query(rankquery, [noteId], (err) =>{
+                        if (err) {
+                        console.error("Error updating rank:", err);
+                        return res.status(500).json({ error: "rank update failed" });
+                    }
+                    })
+                })
                 res.json({ success: true, message: "Note liked and upvoted!" });
             });
         });

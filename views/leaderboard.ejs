@@ -50,19 +50,25 @@
                             <tr class="leaderboard tr">
                                 <th class="leaderboard th">Rank</th>
                                 <th class="leaderboard th">User</th>
+                                <th class="leaderboard th">Tier</th>
                                 <th class="leaderboard th">Notes Uploaded</th>
                                 <th class="leaderboard th">Upvotes</th>
                                 <th class="leaderboard th">Points</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="leaderboard tr">
-                                <td class="leaderboard rank">1</td>
-                                <td>Paromita</td>
-                                <td>45</td>
-                                <td>320</td>
-                                <td>3200</td>
-                            </tr>
+                            <% if (students && students.length > 0) { %>
+                                <% students.forEach((student, index) => { %>
+                                    <tr class="leaderboard tr">
+                                        <td class="leaderboard rank"><%= index + 1 %></td>
+                                        <td><%= student.name %></td>
+                                        <td><span class="profile tag"><%= student.rank_level %></span></td>
+                                        <td><%= student.notes_uploaded %></td>
+                                        <td><%= student.total_upvotes %></td>
+                                        <td style="color: #a855f7; font-weight: bold;"><%= student.points %></td>
+                                    </tr>
+                                <% }) %>
+                            <% } %>
                         </tbody>
                     </table>
                 </div>

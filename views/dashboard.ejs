@@ -51,15 +51,28 @@
                 <div class="dashboard notes-container">
                     <% if (savedNotes.length > 0) { %>
                         <% savedNotes.forEach(note => { %>
-                            <a href="/notes" class="profile topic-card note-button">
-                                <div class="card-inner">
-                                    <span class="profile tag">CSE330</span> 
-                                    <h3 class="note-title"><%= note.title %></h3>                           
-                                    <div class="note-info">
-                                        <span><i class="fa-solid fa-file-lines"></i> by <%= note.author_name %></span>
-                                    </div>                    
-                                </div>
-                            </a>
+                            <div class="note-card-wrapper" style="position: relative; width: fit-content;">
+                                <a href="/notes" class="profile topic-card note-button">
+                                    <div class="card-inner" style="position: relative; padding-right: 40px;">                            
+                                        <% if (note.tags) { %>
+                                            <% note.tags.split(',').forEach(singleTag => { %>
+                                                <div style="display: flex; flex-wrap: wrap; gap: 10px; max-width: 90%;">
+                                                    <span class="profile tag" style="margin: 0;"><%= singleTag %></span>
+                                                </div>
+                                            <% }) %>
+                                        <% } %>                                  
+                                        <h3 class="note-title"><%= note.title %></h3>                                   
+                                        <div class="note-info">                                      
+                                            <span><i class="fa-solid fa-file-lines"></i> by <%= note.author_name %></span>
+                                        </div>                    
+                                    </div>
+                                </a>
+                                <form action="/unsave-note/<%= note.note_id %>" method="POST" class="delete-form-inline">
+                                    <button type="submit" class="delete-icon-btn" title="Unsave Note">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
                         <% }) %>
                     <% } else { %>
                         <p style="color: #b9b9c9; text-align: center; width: 100%; padding-top: 20px;">
