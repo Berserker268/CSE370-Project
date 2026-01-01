@@ -15,23 +15,6 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
---
--- Table structure for table `follows`
---
-
-DROP TABLE IF EXISTS `follows`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `follows` (
-  `follower_id` int(11) NOT NULL,
-  `following_id` int(11) NOT NULL,
-  `followed_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`follower_id`,`following_id`),
-  KEY `following_id` (`following_id`),
-  CONSTRAINT `follows_ibfk_1` FOREIGN KEY (`follower_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
-  CONSTRAINT `follows_ibfk_2` FOREIGN KEY (`following_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `messages`
@@ -164,7 +147,7 @@ CREATE TABLE `user` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `role` enum('user','admin') DEFAULT 'user',
   `points` int(11) DEFAULT 0,
-  `rank_level` varchar(50) DEFAULT 'Beginner',
+  `rank_level` varchar(50) DEFAULT 'New Uploader',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
