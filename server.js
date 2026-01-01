@@ -252,7 +252,30 @@ app.post('/unsave-note/:id', (req, res) => {
         const decrementQuery = `UPDATE note SET upvotes = GREATEST(0, upvotes - 1) WHERE note_id = ?`;
         db.query(decrementQuery, [noteId], (err, updateResult) => {
             if (err) return res.status(500).send("Error updating upvote count");
-            res.redirect('/dashboard');
+            const deductPointsQuery = `
+                UPDATE user 
+                SET points = GREATEST(0, points - 10) 
+                WHERE user_id = (SELECT uploader_id FROM note WHERE note_id = ?)`;
+            db.query(deductPointsQuery, [noteId], (err, pointResult) => {
+                if (err) {
+                    console.error("Error updating user points:", err);
+                }
+                const updateRankQuery = `
+                    UPDATE user u
+                    SET u.rank_level = CASE
+                        WHEN u.points >= 300 THEN 'Master Uploader'
+                        WHEN u.points >= 200 THEN 'Expert Uploader'
+                        WHEN u.points >= 150 THEN 'Pro Uploader'
+                        WHEN u.points >= 100 THEN 'Skilled Uploader'
+                        WHEN u.points >= 50  THEN 'Active Uploader'
+                    ELSE 'New Uploader'
+                    END
+                    WHERE u.user_id = (SELECT uploader_id FROM note WHERE note_id = ?)`;
+                db.query(updateRankQuery, [noteId], (err) => {
+                    if (err) console.error("Rank update error:", err);
+                    res.redirect('/dashboard');
+                });
+            });
         });
     });
 });

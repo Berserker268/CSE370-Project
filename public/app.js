@@ -1,3 +1,6 @@
+const forYouContainer = document.getElementById('foryou-container');
+const trendingContainer = document.getElementById('trending-container');
+
 function switchTab(tabName) {
     const filterSection = document.getElementById('filter-section');
     const leaderboard = document.getElementById('sidebar-right');
@@ -36,6 +39,13 @@ async function swipeCard(index, direction, isTrending = false) {
 
         fetch(`/like-note/${noteId}`, { method: 'POST' })
             .catch(err => console.error("Save failed:", err));
+        
+        const sameNotes = document.querySelectorAll(`[data-note-id="${noteId}"]`);
+        sameNotes.forEach(note => {
+            note.style.opacity = "0";
+            note.style.pointerEvents = "none";
+            setTimeout(() => note.remove(), 600);
+        });
             
     } else if (direction === 'left') {
         // Fly to the left
@@ -49,6 +59,8 @@ async function swipeCard(index, direction, isTrending = false) {
     }, 600); // 600ms matches the 0.6s transition in your CSS
 }
 function checkEmptyStack() {
+    //const forYouRemaining = document.querySelectorAll('#foryou-container .note-card').length;
+    //const trendingRemaining = document.querySelectorAll('#trending-container .note-card').length;
     const remainingCards = document.querySelectorAll('.note-card');
     const emptyMsg = document.getElementById('empty-msg');
     if (remainingCards.length === 0) {
