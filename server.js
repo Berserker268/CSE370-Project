@@ -13,11 +13,20 @@ const path = require('path')
 const multer = require('multer')
 const mysql = require('mysql2');
 
+/**
+ * MySQL Connection configured from environment variables with sensible defaults.
+ *
+ * Create a env variable with following param
+ * - DB_HOST (default: 'localhost')
+ * - DB_USER (default: 'root')
+ * - DB_PASS (default: 'admin')
+ * - DB_NAME (default: 'onlynotes-db')
+ */
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || '',
-    database: process.env.DB_NAME || 'onlynotes'
+    password: process.env.DB_PASS || 'admin',
+    database: process.env.DB_NAME || 'onlynotes-db' 
 });
 
 db.connect((err) => {
