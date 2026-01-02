@@ -4,6 +4,8 @@ if(process.env.NODE_ENV !== 'production'){
 
 const express = require('express')
 const app = express()
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 const bcrypt = require('bcrypt')
 const passport = require('passport')
 const flash = require('express-flash')
@@ -49,7 +51,7 @@ app.use(methodOverride('_method'))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/image', express.static(path.join(__dirname, 'image')))
 
-app.get('/', checkAuthenticated, (req, res) => {
+app.get('/', isUser, checkAuthenticated, (req, res) => {
     const userId = req.user.user_id;
     const leaderboardsql = `
     SELECT 
@@ -71,7 +73,8 @@ app.get('/', checkAuthenticated, (req, res) => {
     JOIN user u ON n.uploader_id = u.user_id
     JOIN note_tag nt ON n.note_id = nt.note_id
     JOIN tag t ON nt.tag_id = t.tag_id
-    WHERE n.uploader_id != ? 
+    WHERE n.uploader_id != ?
+      AND n.visibility = 'public'
       AND n.note_id NOT IN (SELECT note_id FROM saved_notes WHERE user_id = ?)
     GROUP BY n.note_id, u.name, u.rank_level
     ORDER BY n.created_at DESC 
@@ -86,7 +89,8 @@ app.get('/', checkAuthenticated, (req, res) => {
     JOIN user u ON n.uploader_id = u.user_id
     JOIN note_tag nt ON n.note_id = nt.note_id
     JOIN tag t ON nt.tag_id = t.tag_id
-    WHERE n.uploader_id != ? 
+    WHERE n.uploader_id != ?
+      AND n.visibility = 'public'
       AND n.note_id NOT IN (SELECT note_id FROM saved_notes WHERE user_id = ?)
     GROUP BY n.note_id, u.name, u.rank_level
     ORDER BY 
@@ -130,11 +134,24 @@ app.get('/login', checkNotAuthenticated,(req, res) =>{
     res.render('login.ejs')
 })
 
-app.post('/login',checkNotAuthenticated, passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/login',
-    failureFlash: true
-}))
+app.post('/login', checkNotAuthenticated, (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+        if (err) return next(err);
+        if (!user) {
+            return res.redirect('/login'); 
+        }
+        if (user.status === 'banned') {
+            return res.render('login.ejs', { 
+                message: 'Your account has been banned for violating community guidelines.' 
+            });
+        }
+        req.logIn(user, (err) => {
+            if (err) return next(err);
+            return user.role === 'admin' ? res.redirect('/admin') : res.redirect('/');
+        });
+
+    })(req, res, next);
+});
 
 app.get('/register',checkNotAuthenticated, (req, res) =>{
     res.render('register.ejs')
@@ -158,7 +175,7 @@ app.post('/register',checkNotAuthenticated, async (req, res) =>{
     }
 })
 
-app.get('/upload', checkAuthenticated, (req, res) => {
+app.get('/upload', isUser, checkAuthenticated, (req, res) => {
     res.render('upload.ejs', { name: req.user.name });
 });
 
@@ -197,15 +214,30 @@ app.post('/upload', checkAuthenticated, (req, res)=>{
     })
 })
 
-app.get('/notes', checkAuthenticated, (req,res) =>{
-    res.render('notes.ejs', {name: req.user.name})
-})
+app.get('/chat', isUser, checkAuthenticated, (req, res) => {
+    const sql = `
+        SELECT u.name AS username, m.message_text AS message 
+        FROM messages m 
+        JOIN user u ON m.sender_id = u.user_id 
+        ORDER BY m.sent_at ASC 
+        LIMIT 50`;
 
-app.get('/chat', checkAuthenticated, (req,res)=>{
-    res.render('chat.ejs', {name: req.user.name})
-})
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Chat History Error:", err);
+            return res.render('chat.ejs', { name: req.user.name, user: req.user, history: [] });
+        }
+        res.render('chat.ejs', { 
+            name: req.user.name, 
+            user: req.user, 
+            history: results 
+        });
+    });
+});
 
-app.get('/dashboard', checkAuthenticated, async (req, res) => {
+
+
+app.get('/dashboard', isUser, checkAuthenticated, async (req, res) => {
     const userName = req.user.name;
     const userId = req.user.user_id;
     const statsQuery = `
@@ -280,7 +312,52 @@ app.post('/unsave-note/:id', (req, res) => {
     });
 });
 
-app.get('/leaderboard', checkAuthenticated, (req, res) => {
+app.post('/report-note', checkAuthenticated, (req, res) => {
+    const { noteId, reason } = req.body;
+    const reporterId = req.user.user_id;
+    const sqlReport = "INSERT INTO reports (reporter_id, note_id, reason) VALUES (?, ?, ?)";    
+    db.query(sqlReport, [reporterId, noteId, reason], (err) => {
+        if (err) return res.status(500).send(err);
+        const sqlHide = "UPDATE note SET visibility = 'hidden' WHERE note_id = ?";        
+        db.query(sqlHide, [noteId], (err) => {
+            if (err) return res.status(500).send(err);
+            const sqlRemoveSaved = "DELETE FROM saved_notes WHERE note_id = ?";            
+            db.query(sqlRemoveSaved, [noteId], (err) => {
+                if (err) return res.status(500).send(err);
+                const decrementQuery = `UPDATE note SET upvotes = GREATEST(0, upvotes - 1) WHERE note_id = ?`;
+                db.query(decrementQuery, [noteId], (err, updateResult) => {
+                    if (err) return res.status(500).send("Error updating upvote count");
+                    const deductPointsQuery = `
+                        UPDATE user 
+                        SET points = GREATEST(0, points - 10) 
+                        WHERE user_id = (SELECT uploader_id FROM note WHERE note_id = ?)`;
+                    db.query(deductPointsQuery, [noteId], (err, pointResult) => {
+                        if (err) {
+                            console.error("Error updating user points:", err);
+                        }
+                        const updateRankQuery = `
+                        UPDATE user u
+                        SET u.rank_level = CASE
+                            WHEN u.points >= 300 THEN 'Master Uploader'
+                            WHEN u.points >= 200 THEN 'Expert Uploader'
+                            WHEN u.points >= 150 THEN 'Pro Uploader'
+                            WHEN u.points >= 100 THEN 'Skilled Uploader'
+                            WHEN u.points >= 50  THEN 'Active Uploader'
+                        ELSE 'New Uploader'
+                        END
+                        WHERE u.user_id = (SELECT uploader_id FROM note WHERE note_id = ?)`;
+                        db.query(updateRankQuery, [noteId], (err) => {
+                            if (err) console.error("Rank update error:", err);
+                            res.json({ success: true, message: "Note reported and scrubbed from app." });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+app.get('/leaderboard', isUser, checkAuthenticated, (req, res) => {
     const leaderboardQuery = `
         SELECT
             COUNT(n.note_id) AS notes_uploaded,
@@ -288,6 +365,7 @@ app.get('/leaderboard', checkAuthenticated, (req, res) => {
             u.name, u.rank_level, u.points 
         FROM user u
         LEFT JOIN note n ON u.user_id = n.uploader_id
+        WHERE u.status = 'active' AND u.role = 'user'
         GROUP BY u.user_id, u.name, u.rank_level, u.points
         ORDER BY u.points DESC
     `;
@@ -303,7 +381,7 @@ app.get('/leaderboard', checkAuthenticated, (req, res) => {
     });
 });
 
-app.get('/profile', checkAuthenticated, (req, res) => {
+app.get('/profile', isUser, checkAuthenticated, (req, res) => {
     const userId = req.user.user_id;
     const statsQuery = `
         SELECT 
@@ -338,6 +416,49 @@ app.get('/profile', checkAuthenticated, (req, res) => {
                 stats: statsResult[0],
                 uploadedNotes: uploadedNotes
             });
+        });
+    });
+});
+
+function isUser(req, res, next) {
+    if (req.isAuthenticated() && req.user.role === 'user') {
+        return next();
+    }
+    if (req.isAuthenticated() && req.user.role === 'admin') {
+        return res.redirect('/admin');
+    }
+    res.redirect('/login');
+}
+
+function isAdmin(req, res, next) {
+    if (req.isAuthenticated()) {
+        if (req.user.role === 'admin') {
+            return next();
+        }
+        return res.redirect('/'); 
+    }
+    res.redirect('/login');
+}
+
+app.get('/admin', isAdmin, checkAuthenticated, (req, res) => {
+    const sql = `
+        SELECT r.report_id, r.reason, r.reported_at, 
+            n.note_id, n.title, n.content, 
+            n.uploader_id,
+            r.reporter_id,
+            u.name AS reporter_name
+        FROM reports r
+        JOIN note n ON r.note_id = n.note_id
+        JOIN user u ON r.reporter_id = u.user_id
+        WHERE r.status = 'open'
+        ORDER BY r.reported_at DESC`;
+    const bannedUsersSql = "SELECT user_id, name FROM user WHERE status = 'banned'";
+
+    db.query(sql, (err, reports) => {
+        if (err) return res.status(500).send("Database Error");
+        db.query(bannedUsersSql, (err, bannedUsers) => {
+            if (err) return res.status(500).send("Database Error");
+            res.render('admin', { reports, name: req.user.name, bannedUsers });
         });
     });
 });
@@ -399,6 +520,94 @@ app.post('/like-note/:id', async (req, res) => {
     }
 });
 
+// Delete Note Permanently
+app.post('/admin/delete-note/:noteId', isAdmin, checkAuthenticated, (req, res) => {
+    const noteId = req.params.noteId;
+    const sql = "DELETE FROM note WHERE note_id = ?";
+    
+    db.query(sql, [noteId], (err) => {
+        if (err) return res.status(500).send(err);
+        const resolveReportsSql = "UPDATE reports SET status = 'resolved' WHERE note_id = ?";
+        db.query(resolveReportsSql, [noteId], (err) => {
+            if (err) console.error("Report resolve error:", err);
+            const cleanupTagsSql = `
+                DELETE FROM tag 
+                WHERE tag_id NOT IN (SELECT DISTINCT tag_id FROM note_tag)`;
+            
+            db.query(cleanupTagsSql, (err) => {
+                if (err) console.error("Tag cleanup error:", err);
+                res.redirect('/admin');
+            });
+        });
+    });
+});
+
+// (False Report)
+app.post('/admin/resolve-report/:reportId/:noteId', isAdmin, checkAuthenticated, (req, res) => {
+    const { reportId, noteId } = req.params;
+    const restoreSql = "UPDATE note SET visibility = 'public' WHERE note_id = ?";
+    const resolveSql = "UPDATE reports SET status = 'resolved' WHERE report_id = ?";
+
+    db.query(restoreSql, [noteId], (err) => {
+        db.query(resolveSql, [reportId], (err) => {
+            res.redirect('/admin');
+        });
+    });
+});
+
+// (bad content)
+app.post('/admin/ban-uploader/:userId', isAdmin, checkAuthenticated, (req, res) => {
+    const uploaderId = req.params.userId;
+    const bansql = "UPDATE user SET status = 'banned' WHERE user_id = ?";
+    db.query(bansql, [uploaderId], (err) => {
+        if (err) return res.status(500).send("Error banning user");
+        const hideNotesSql = "UPDATE note SET visibility = 'hidden' WHERE uploader_id = ?";
+        db.query(hideNotesSql, [uploaderId], (err) => {
+            if (err) return res.status(500).send("Error hiding notes");
+            const clearReportsSql = `
+                UPDATE reports r 
+                JOIN note n ON r.note_id = n.note_id 
+                SET r.status = 'resolved' 
+                WHERE n.uploader_id = ?`;
+            db.query(clearReportsSql, [uploaderId], (err) => {
+                if (err) return res.status(500).send("Error clearing reports");
+                res.redirect('/admin');
+            });
+        });
+    });
+});
+
+// (spam reporting)
+app.post('/admin/ban-reporter/:userId/:noteId', isAdmin, checkAuthenticated, (req, res) => {
+    const reporterId = req.params.userId;
+    const noteId = req.params.noteId;
+    const sql = "UPDATE user SET status = 'banned' WHERE user_id = ?";
+    db.query(sql, [reporterId], (err) => {
+        if (err) return res.status(500).send("Error banning user");
+        const resolveSql = "UPDATE reports SET status = 'resolved' WHERE reporter_id = ?";
+        const restoreSql = "UPDATE note SET visibility = 'public' WHERE note_id = ?";
+        db.query(restoreSql, [noteId], (err) => {
+            if (err) return res.status(500).send("Error restoring note");
+            db.query(resolveSql, [reporterId], (err) => {
+                if (err) return res.status(500).send("Error clearing reports");
+                res.redirect('/admin');
+            });
+        });
+    });
+});
+// (Unban User)
+app.post('/admin/unban-user/:userId', isAdmin, (req, res) => {
+    const userId = req.params.userId;
+    const unbanSql = "UPDATE user SET status = 'active' WHERE user_id = ?";
+    db.query(unbanSql, [userId], (err) => {
+        if (err) return res.status(500).send(err);
+        const restoreNotesSql = "UPDATE note SET visibility = 'public' WHERE uploader_id = ?";
+        db.query(restoreNotesSql, [userId], (err) => {
+            res.redirect('/admin');
+        });
+    });
+});
+
 app.delete('/logout', (req, res, next) => {
     req.logOut(function(err) {
         if (err) { return next(err) }
@@ -421,13 +630,25 @@ function checkNotAuthenticated(req, res, next){
     next()
 }
 
+io.on('connection', (socket) => {
+    socket.on('joinRoom', ({ username, userId }) => {
+        socket.username = username;
+        socket.userId = userId;
+    });
+    socket.on('chatMessage', (msg) => {
+        if (!msg || msg.trim() === "") return;
+        const sql = "INSERT INTO messages (sender_id, message_text) VALUES (?, ?)";
+        db.query(sql, [socket.userId, msg], (err) => {
+            if (err) return console.error("Socket DB Error:", err);
+            io.emit('message', { 
+                user: socket.username, 
+                text: msg 
+            });
+        });
+    });
+});
+
 const PORT = process.env.PORT || 3000;
-const ENV = process.env.NODE_ENV || 'development';
-app.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT} [env: ${ENV}]`);
-    if (ENV === 'production') {
-        console.log('⚙️ Running in production mode — make sure proper env vars are set.');
-    } else {
-        console.log('🔧 Running in development mode — debug logs enabled.');
-    }
+http.listen(PORT, () => {
+    console.log(`🚀 Server & Chat running on http://localhost:${PORT}`);
 });

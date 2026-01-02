@@ -75,6 +75,11 @@
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
+                                <button type="button" class="delete-icon-btn" 
+                                    onclick="openReportModal('<%= note.note_id %>')" title="Report Note"
+                                    style="color: #facc15; border-color: rgba(250, 204, 21, 0.2); margin-top: 5px;">
+                                    <i class="fa-solid fa-flag"></i>
+                                </button>
                             </div>
                         <% }) %>
                     <% } else { %>
@@ -86,58 +91,70 @@
             </div>
         </main>
     </div>
-
-    <!-- 
-        Note Modal Structure 
-        A "Modal" is a popup window. 
-        - The 'modal-overlay' is the blurred background.
-        - The 'modal-card' is the actual box containing the note.
-    -->
+    <!-- Note Modal -->
     <div id="noteModal" class="modal-overlay" onclick="closeNoteModal(event)">
         <div class="modal-card" onclick="event.stopPropagation()">
-            <!-- Close button (Cross) -->
             <button class="modal-close" onclick="closeNoteModal()"><i class="fa-solid fa-xmark"></i></button>
-            
-            <!-- Dynamic content filled by JavaScript -->
             <h2 id="modalTitle" class="modal-title"></h2>
             <div id="modalContent" class="modal-content"></div>
         </div>
     </div>
+    <div id="reportModal" class="modal-overlay" style="display: none;">
+        <div class="report-modal-card">
+            <h2 style="color: #ff4444; margin-bottom: 15px;">
+                <i class="fa-solid fa-circle-exclamation"></i> Report Note
+            </h2>
+            <p style="color: #ccc; font-size: 14px; margin-bottom: 20px;">
+                Please explain why this content is inappropriate.
+            </p>
+            <input type="hidden" id="report-note-id">
+            <textarea id="report-reason" class="report-textarea" placeholder="Type reason here..."></textarea>
+            <div class="btn-container">
+                <button onclick="closeReportModal()" class="btn-cancel">Cancel</button>
+                <button onclick="submitReport()" class="btn-submit-report">Submit Report</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        /**
-         * Opens the modal and populates it with note data.
-         * @param {HTMLElement} element - The clicked anchor element containing data attributes.
-         */
         function openNoteModal(element) {
-            // Retrieve title and content from the data attributes we added to the <a> tag
             const title = element.getAttribute('data-title');
             const content = element.getAttribute('data-content');
-            
-            // Inject the text into the modal elements
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalContent').innerText = content;
-            
-            // Show the modal by changing display from 'none' to 'flex'
-            document.getElementById('noteModal').style.display = 'flex';
-            
-            // Disable scrolling on the main page while the modal is open
+            document.getElementById('noteModal').style.display = 'flex';            
             document.body.style.overflow = 'hidden'; 
         }
-
-        /**
-         * Closes the modal.
-         * @param {Event} [event] - Optional click event to check if the user clicked the background.
-         */
         function closeNoteModal(event) {
-            // If an event exists, only close if the user clicked the overlay itself (not the card)
-            if (event && event.target !== document.getElementById('noteModal')) return;
-            
-            // Hide the modal
+            if (event && event.target !== document.getElementById('noteModal')) return;            
             document.getElementById('noteModal').style.display = 'none';
-            
-            // Re-enable scrolling on the main page
             document.body.style.overflow = 'auto'; 
+        }
+        function openReportModal(noteId) {
+            document.getElementById('report-note-id').value = noteId;
+            document.getElementById('report-reason').value = "";
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+        function closeReportModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+        function submitReport() {
+            const noteId = document.getElementById('report-note-id').value;
+            const reason = document.getElementById('report-reason').value;
+            if (!reason.trim()) {
+                alert("Please enter a reason.");
+                return;
+            }
+            fetch('/report-note', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ noteId, reason })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Reported! The note is hidden and will be reviewed by an admin.");
+                location.reload(); 
+            });
         }
     </script>
 </body>

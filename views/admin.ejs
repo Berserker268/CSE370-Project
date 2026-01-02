@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnlyNotes | Admin</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon" style="background: #ef4444;">A</div>
+            <span class="logo-text">Admin Panel</span>
+        </div>
+        <div class="user-profile">
+            <span style="color: #888; margin-right: 15px;">Logged in as: <strong><%= name %></strong></span>
+            <form action="/logout?_method=DELETE" method="POST" style="display: inline;">
+                <button type="submit" style="background: none; border: none; color: #888; cursor: pointer;"><i class="fa-solid fa-power-off"></i></button>
+            </form>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <aside class="sidebar-left">
+            <div class="sidebar-group">
+                <p class="group-title">MANAGEMENT</p>
+                <span><i class="fa-solid fa-shield-halved"></i> Reports Queue</span>
+                <form action="/logout?_method=DELETE" method="POST" style="text-decoration: none;">
+                    <button type="submit" class="menu-item upload-btn"><i class="fa-solid fa-right-from-bracket text-purple-500"></i> Sign Out</button>
+                </form>
+            </div>
+            <div class="sidebar-group" style="margin-top: 30px;">
+                <p class="group-title">BANNED USERS (<%= bannedUsers.length %>)</p>
+                <div class="banned-list-sidebar" style="max-height: 400px; overflow-y: auto;">
+                    <% if (bannedUsers.length === 0) { %>
+                        <p style="color: #555; font-size: 0.8rem; padding: 0 15px;">No blocked users.</p>
+                    <% } else { %>
+                        <% bannedUsers.forEach(user => { %>
+                            <div class="banned-item" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; border-bottom: 1px solid #222;">
+                                <div style="overflow: hidden;">
+                                    <p style="color: #eee; font-size: 0.85rem; margin: 0; white-space: nowrap; text-overflow: ellipsis;">
+                                        <%= user.name %>
+                                    </p>
+                                </div>
+                                <form action="/admin/unban-user/<%= user.user_id %>" method="POST" style="margin-left: 10px;">
+                                    <button type="submit" title="Unban User" style="background: none; border: none; color: #22c55e; cursor: pointer; padding: 5px;">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+        </aside>
+
+        <main class="chat-page-wrapper">
+            <div class="admin-main">
+                <div style="margin-bottom: 30px;">
+                    <h1 style="color: white; margin-bottom: 10px;">Moderation Queue</h1>
+                    <p style="color: #888;">Review flagged notes and take action against users violating guidelines.</p>
+                </div>
+
+                <% if (reports.length === 0) { %>
+                    <div style="text-align: center; padding: 50px; background: #1a1a1a; border-radius: 15px;">
+                        <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: #22c55e; margin-bottom: 15px;"></i>
+                        <h2 style="color: white;">All clear!</h2>
+                        <p style="color: #888;">No pending reports to review.</p>
+                    </div>
+                <% } else { %>
+                    <div class="report-grid">
+                        <% reports.forEach(report => { %>
+                            <div class="report-card">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                                    <div>
+                                        <h3 style="color: white; font-size: 1.4rem;"><%= report.title %></h3>
+                                        <p style="color: #888; font-size: 0.85rem;">Note ID: <%= report.note_id %></p>
+                                    </div>
+                                    <form action="/admin/ban-reporter/<%= report.reporter_id %>/<%= report.note_id %>" method="POST" onsubmit="return confirm('Ban this reporter for spamming?')">
+                                        <button type="submit" class="btn-admin btn-outline-red" style="padding: 5px 10px; font-size: 0.8rem;">
+                                            <i class="fa-solid fa-user-slash"></i> Ban Reporter: <%= report.reporter_name %>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="reason-box">
+                                    <strong style="color: #ff4444; display: block; margin-bottom: 5px;">REPORT REASON:</strong>
+                                    <p style="color: white;"><%= report.reason %></p>
+                                </div>
+
+                                <div class="note-preview">
+                                    <strong style="color: #a855f7; display: block; margin-bottom: 5px;">NOTE CONTENT PREVIEW:</strong>
+                                    <%= report.content %>
+                                </div>
+
+                                <div class="admin-actions">
+                                    <form action="/admin/resolve-report/<%= report.report_id %>/<%= report.note_id %>" method="POST">
+                                        <button type="submit" class="btn-admin btn-green">
+                                            <i class="fa-solid fa-check"></i> Allow Note
+                                        </button>
+                                    </form>
+
+                                    <form action="/admin/delete-note/<%= report.note_id %>" method="POST" onsubmit="return confirm('Permanently delete this note?')">
+                                        <button type="submit" class="btn-admin btn-red">
+                                            <i class="fa-solid fa-trash-can"></i> Delete Note
+                                        </button>
+                                    </form>
+
+                                    <form action="/admin/ban-uploader/<%= report.uploader_id %>" method="POST" onsubmit="return confirm('Ban the user who uploaded this?')">
+                                        <button type="submit" class="btn-admin btn-orange">
+                                            <i class="fa-solid fa-user-xmark"></i> Ban Uploader
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

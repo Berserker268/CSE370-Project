@@ -67,6 +67,9 @@
     <% if (messages.error) { %>
       <div class="error-message"><%= messages.error %></div>
     <% } %>
+    <% if (typeof message !== 'undefined') { %>
+        <div class="error-message"><%= message %></div>
+    <% } %>
 
     <div class="form-container">
       <form action="/login" method="POST">
