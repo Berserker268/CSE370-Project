@@ -1,4 +1,5 @@
 📝 OnlyNotes | Real-Time Academic Note Sharing
+
 OnlyNotes is a full-stack community platform designed for students to upload, share, and discover academic notes. It features a gamified experience where users earn ranks based on community engagement and a real-time global study room for collaboration.
 
 🚀 Features
