@@ -205,7 +205,7 @@ app.post('/upload', checkAuthenticated, (req, res)=>{
                     db.query("INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?)", [noteId, tagId], (err) => {
                         totaltags++;
                         if (totaltags === tags.length) {
-                            return res.redirect('/dashboard'); 
+                            return res.redirect('/profile'); 
                         }
                     });
                 });
