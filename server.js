@@ -57,11 +57,9 @@ app.get('/', isUser, checkAuthenticated, (req, res) => {
     SELECT 
         u.name, 
         u.rank_level, 
-        (SUM(n.upvotes)* 10) AS points 
+        u.points 
     FROM user u
-    LEFT JOIN note n ON u.user_id = n.uploader_id
-    GROUP BY u.user_id
-    ORDER BY points DESC 
+    ORDER BY u.points DESC 
     LIMIT 3`;
     const notesSql = `
     SELECT 
@@ -77,7 +75,7 @@ app.get('/', isUser, checkAuthenticated, (req, res) => {
       AND n.visibility = 'public'
       AND n.note_id NOT IN (SELECT note_id FROM saved_notes WHERE user_id = ?)
     GROUP BY n.note_id, u.name, u.rank_level
-    ORDER BY n.created_at DESC 
+    ORDER BY n.created_at DESC
     LIMIT 50`;
     const trendingSql = `
     SELECT 
@@ -416,6 +414,36 @@ app.get('/profile', isUser, checkAuthenticated, (req, res) => {
                 stats: statsResult[0],
                 uploadedNotes: uploadedNotes
             });
+        });
+    });
+});
+
+app.post('/delete-note-profile/:noteId', (req, res) => {
+    const noteId = req.params.noteId;
+    const currentUserId = req.user.user_id;
+    const getTagsSql = "SELECT tag_id FROM note_tag WHERE note_id = ?";
+    db.query(getTagsSql, [noteId], (err, tags) => {
+        if (err) return res.status(500).send("Error fetching tags");
+        const deleteNoteSql = "DELETE FROM note WHERE note_id = ? AND uploader_id = ?";
+        db.query(deleteNoteSql, [noteId, currentUserId], (err, result) => {
+            if (err) return res.status(500).send("Error deleting note");
+            if (result.affectedRows === 0) {
+                return res.status(403).send("Unauthorized or Note not found.");
+            }
+            if (tags.length > 0) {
+                const tagIds = tags.map(t => t.tag_id);
+                const cleanupSql = `
+                    DELETE FROM tag 
+                    WHERE tag_id IN (?) 
+                    AND tag_id NOT IN (SELECT DISTINCT tag_id FROM note_tag)
+                `;
+                db.query(cleanupSql, [tagIds], (err) => {
+                    if (err) console.error("Orphan tag cleanup failed:", err);
+                    res.redirect('/profile');
+                });
+            } else {
+                res.redirect('/profile');
+            }
         });
     });
 });

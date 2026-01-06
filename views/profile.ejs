@@ -71,24 +71,28 @@
                 <div class="profile cards" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
                     <% if (uploadedNotes.length > 0) { %>
                         <% uploadedNotes.forEach(note => { %>
-                            <a href="javascript:void(0)" 
-                               class="profile topic-card note-button" 
-                               data-title="<%= note.title %>"
-                               data-content="<%= note.content %>"
-                               onclick="openNoteModal(this)">
-                                <div class="card-inner">
-                                    <% if (note.tags) { %>
-                                        <% note.tags.split(',').forEach(singleTag => { %>
-                                            <span class="profile tag"><%= singleTag %></span>
-                                        <% }) %>
-                                    <% } %>
-                                    <h3 class="note-title"><%= note.title %></h3>
-                                    <div class="note-info">
-                                        <span><i class="fa-solid fa-house-chimney-user"></i> <%= note.upvotes %> Upvotes</span>
-                                        <span><i class="fa-solid fa-file-lines"></i> by <%= note.author_name %></span>
+                            <div class="note-card-wrapper" style="position: relative; width: fit-content;">
+                                <a href="javascript:void(0)" class="profile topic-card note-button" data-title="<%= note.title %>"
+                                    data-content="<%= note.content %>" onclick="openNoteModal(this)">
+                                    <div class="card-inner">
+                                        <% if (note.tags) { %>
+                                            <% note.tags.split(',').forEach(singleTag => { %>
+                                                <span class="profile tag"><%= singleTag %></span>
+                                            <% }) %>
+                                        <% } %>
+                                        <h3 class="note-title"><%= note.title %></h3>
+                                        <div class="note-info">
+                                            <span><i class="fa-solid fa-house-chimney-user"></i> <%= note.upvotes %> Upvotes</span>
+                                            <span><i class="fa-solid fa-file-lines"></i> by <%= note.author_name %></span>
+                                        </div>
                                     </div>
-                                </div>
-                            </a>
+                                </a>
+                                <form action="/delete-note-profile/<%= note.note_id %>" method="POST" class="delete-form-inline">
+                                    <button type="submit" class="delete-icon-btn" title="Delete Note" onclick="return confirm('Are you sure?')">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
                         <% }) %>
                     <% } else { %>
                         <p style="color: #b9b9c9; text-align: center; width: 100%; padding-top: 20px;">
